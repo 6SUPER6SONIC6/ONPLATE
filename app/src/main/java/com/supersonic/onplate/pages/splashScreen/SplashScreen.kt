@@ -44,7 +44,7 @@ private fun SplashScreenContent(
     onNavigationNext: () -> Unit
 ) {
     Column(modifier = modifier) {
-        Text(text = "Splash Screen",
+        Text(text = "Go to main screen!",
             modifier = modifier.clickable {
                 onNavigationNext.invoke()
             })
