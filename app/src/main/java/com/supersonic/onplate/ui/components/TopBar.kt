@@ -10,6 +10,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme.colorScheme
+import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -33,6 +34,7 @@ fun TopBar(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             color = colorScheme.onPrimary,
+            style = typography.titleLarge
         )
     },
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(colorScheme.primary),

@@ -22,6 +22,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.supersonic.onplate.R
 import com.supersonic.onplate.ui.components.Fab
+import com.supersonic.onplate.ui.components.RecipeCard
 import com.supersonic.onplate.ui.components.TopBar
 import com.supersonic.onplate.ui.theme.ONPLATETheme
 
@@ -94,6 +95,9 @@ private fun MainScreenContent(
                 onNavigationToAddRecipe.invoke()
             }
         )
+
+        RecipeCard(title = "Pasta", description = "Pasta with meatballs", cookingTime = 45)
+
     }
 }
 
