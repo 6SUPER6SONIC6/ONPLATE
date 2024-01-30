@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -123,7 +124,9 @@ fun ContentCard(
     Box(modifier = modifier) {
         Box(
             modifier = Modifier
-                .padding(16.dp)
+                .fillMaxWidth()
+                .defaultMinSize(minHeight = 128.dp)
+                .padding(top = 16.dp)
                 .border(1.dp, colorScheme.onSecondaryContainer, RoundedCornerShape(8.dp))
                 .background(colorScheme.secondaryContainer, RoundedCornerShape(8.dp)),
             content = content)
@@ -144,7 +147,7 @@ fun ContentCard(
 
 @Preview(widthDp = 480)
 @Composable
-fun RecipeCardPreview() {
+private fun RecipeCardPreview() {
     ONPLATETheme {
         RecipeCard(
             title = "Pasta",
@@ -156,7 +159,7 @@ fun RecipeCardPreview() {
 
 @Preview(widthDp = 480, showBackground = true)
 @Composable
-fun OverviewCardPreview() {
+private fun ContentCardPreview() {
     ONPLATETheme {
 
             ContentCard(cardTitle = "Overview"){
