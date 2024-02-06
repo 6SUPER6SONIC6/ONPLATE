@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -103,95 +102,117 @@ private fun RecipeScreenContent(modifier: Modifier) {
         modifier = modifier
             .verticalScroll(rememberScrollState())
     ) {
-        //Overview Card
-        ContentCard(cardTitle = stringResource(R.string.cardTitle_overview), modifier = Modifier.padding(8.dp)){
+        PhotosCard()
+        OverviewCard()
+        IngredientsCard()
+        DirectionsCard()
+    }
+}
+
+@Composable
+fun PhotosCard() {
+
+    ContentCard(cardTitle = stringResource(R.string.cardTitle_photos), modifier = Modifier.padding(8.dp)) {
+
+
+        LazyRow(
+            contentPadding = PaddingValues(vertical = 16.dp, horizontal = 8.dp)
+        ) {
+            items(photos.size) {photo ->
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(4.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    border = BorderStroke(1.dp, colorScheme.onSecondaryContainer)
+                ) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(photos[photo])
+                            .crossfade(true)
+                            .build(),
+                        contentScale = ContentScale.Crop,
+                        contentDescription = null)
+                }
+            }
+        }
+
+    }
+
+}
+
+@Composable
+fun OverviewCard() {
+
+    ContentCard(cardTitle = stringResource(R.string.cardTitle_overview), modifier = Modifier.padding(8.dp)){
+        Text(
+            text = "45 min",
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(8.dp)
+        )
+        Column(
+            modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(vertical = 16.dp, horizontal = 8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Text(
-                text = "45 min",
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(8.dp)
+                text = "Pasta",
+                style = MaterialTheme.typography.titleLarge,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
-            Column(
-                modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 16.dp, horizontal = 8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = "Pasta",
-                    style = MaterialTheme.typography.titleLarge,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = "Spaghetti and meatballs are a classic family-friendly dinner." +
-                            " This recipe is great for batch cooking so you can save extra portions in the freezer.",
-                    modifier = Modifier.padding(top = 2.dp),
-                    style = MaterialTheme.typography.bodyLarge,
-                    textAlign = TextAlign.Center,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-        }
-
-        //Ingredients
-        ContentCard(cardTitle = stringResource(R.string.cardTitle_ingredients), modifier = Modifier.padding(8.dp)) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 16.dp, horizontal = 8.dp)
-            ) {
-                ingredients.forEach{ingredient ->
-                    Text(text = "$ingredient;", modifier = Modifier.padding(2.dp), style = MaterialTheme.typography.bodyLarge)
-                }
-            }
-        }
-
-        //Directions
-        ContentCard(cardTitle = stringResource(R.string.cardTitle_directions), modifier = Modifier.padding(8.dp)) {
-            Column(
-                modifier = Modifier
-                    .padding(vertical = 16.dp, horizontal = 8.dp)
-            ) {
-                directions.forEach {step ->
-                    val stepCount = directions.indexOf(step) + 1
-                    Column {
-                        Text(text = "Step $stepCount", modifier = Modifier.padding(2.dp), style = MaterialTheme.typography.titleMedium)
-                        Text(text = step, modifier = Modifier.padding(2.dp), style = MaterialTheme.typography.bodyLarge)
-                    }
-                }
-            }
-        }
-
-        //Photos
-        ContentCard(cardTitle = stringResource(R.string.cardTitle_photos), modifier = Modifier.padding(8.dp)) {
-
-            LazyRow(
-                contentPadding = PaddingValues(vertical = 16.dp, horizontal = 8.dp)
-            ) {
-                items(photos.size) {photo ->
-                    Surface(
-                        modifier = Modifier
-                            .size(120.dp, 100.dp)
-                            .padding(4.dp),
-                        shape = RoundedCornerShape(8.dp),
-                        border = BorderStroke(1.dp, colorScheme.onSecondaryContainer)
-                    ) {
-                        AsyncImage(
-                            model = ImageRequest.Builder(LocalContext.current)
-                                .data(photos[photo])
-                                .crossfade(true)
-                                .build(),
-                            contentScale = ContentScale.Crop,
-                            contentDescription = null)
-                    }
-                }
-            }
-
+            Text(
+                text = "Spaghetti and meatballs are a classic family-friendly dinner." +
+                        " This recipe is great for batch cooking so you can save extra portions in the freezer.",
+                modifier = Modifier.padding(top = 2.dp),
+                style = MaterialTheme.typography.bodyLarge,
+                textAlign = TextAlign.Center,
+                overflow = TextOverflow.Ellipsis
+            )
         }
     }
 }
+
+@Composable
+fun IngredientsCard() {
+
+    ContentCard(cardTitle = stringResource(R.string.cardTitle_ingredients), modifier = Modifier.padding(8.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 16.dp, horizontal = 8.dp)
+        ) {
+            ingredients.forEach{ingredient ->
+                Text(text = "$ingredient;", modifier = Modifier.padding(2.dp), style = MaterialTheme.typography.bodyLarge)
+            }
+        }
+    }
+
+}
+
+@Composable
+fun DirectionsCard() {
+
+    ContentCard(cardTitle = stringResource(R.string.cardTitle_directions), modifier = Modifier.padding(8.dp)) {
+        Column(
+            modifier = Modifier
+                .padding(vertical = 16.dp, horizontal = 8.dp)
+        ) {
+            directions.forEach {step ->
+                val stepCount = directions.indexOf(step) + 1
+                Column {
+                    Text(text = "Step $stepCount", modifier = Modifier.padding(2.dp), style = MaterialTheme.typography.titleMedium)
+                    Text(text = step, modifier = Modifier.padding(2.dp), style = MaterialTheme.typography.bodyLarge)
+                }
+            }
+        }
+    }
+
+}
+
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
@@ -201,4 +222,17 @@ fun RecipeScreenContentPreview() {
         RecipeScreenContent(modifier = Modifier)
     }
 
+}
+
+@Preview(heightDp = 1800 ,showBackground = true)
+@Composable
+fun ContentCardsPreview() {
+    ONPLATETheme {
+        Column {
+            PhotosCard()
+            OverviewCard()
+            IngredientsCard()
+            DirectionsCard()
+        }
+    }
 }
