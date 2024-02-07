@@ -4,6 +4,8 @@ import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
@@ -21,6 +23,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.supersonic.onplate.R
+import com.supersonic.onplate.models.Recipe
 import com.supersonic.onplate.ui.components.Fab
 import com.supersonic.onplate.ui.components.RecipeCard
 import com.supersonic.onplate.ui.components.TopBar
@@ -29,9 +32,12 @@ import com.supersonic.onplate.ui.theme.ONPLATETheme
 @Composable
 fun MainScreen(
     viewModel: MainScreenViewModel,
-    onNavigationToRecipe: () -> Unit,
+    onNavigationToRecipe: (Recipe) -> Unit,
     onNavigationToAddRecipe: () -> Unit,
 ) {
+
+    val recipes = viewModel.loadRecipes()
+
     Scaffold(
         topBar = {
             MainTopBar()
@@ -39,6 +45,7 @@ fun MainScreen(
         content = {
             MainScreenContent(
                 modifier = Modifier.padding(it),
+                recipes = recipes,
                 onNavigationToRecipe = onNavigationToRecipe,
                 onNavigationToAddRecipe = onNavigationToAddRecipe
             )
@@ -77,18 +84,15 @@ private fun MainTopBar() {
 @Composable
 private fun MainScreenContent(
     modifier: Modifier,
-    onNavigationToRecipe: () -> Unit,
+    recipes: List<Recipe>,
+    onNavigationToRecipe: (Recipe) -> Unit,
     onNavigationToAddRecipe: () -> Unit
 ) {
+
     Column(
         modifier = modifier
     ) {
-        Text(
-            text = "Navigate to Recipe Screen",
-            modifier = Modifier.clickable {
-                onNavigationToRecipe.invoke()
-            }
-        )
+
         Text(
             text = "Navigate to Add Recipe Screen",
             modifier = Modifier.clickable {
@@ -96,7 +100,13 @@ private fun MainScreenContent(
             }
         )
 
-        RecipeCard(title = "Pasta", description = "Pasta with meatballs", cookingTime = 45)
+        LazyColumn {
+            items(recipes){recipe ->
+                RecipeCard(recipe = recipe){
+                    onNavigationToRecipe.invoke(recipe)
+                }
+            }
+        }
 
     }
 }
@@ -106,8 +116,8 @@ private fun MainScreenContent(
 fun MainScreenPreview() {
     ONPLATETheme {
         MainScreen(viewModel = hiltViewModel<MainScreenViewModel>(),
-            onNavigationToRecipe = { },
-            onNavigationToAddRecipe = { })
+            onNavigationToRecipe = { }
+        ) { }
 
     }
 }

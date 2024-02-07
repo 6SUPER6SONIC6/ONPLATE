@@ -26,35 +26,46 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import com.supersonic.onplate.models.Recipe
 import com.supersonic.onplate.ui.theme.ONPLATETheme
 
 @Composable
 fun RecipeCard(
     modifier: Modifier = Modifier,
-    title: String,
-    description: String,
-    cookingTime: Int,
+    recipe: Recipe,
+    onItemClick: (Recipe) -> Unit
 ) {
     Card(
         modifier = modifier
             .padding(12.dp)
             .fillMaxWidth()
-            .height(240.dp),
+            .height(280.dp)
+            .clickable { onItemClick(recipe) },
         shape = CardDefaults.shape,
         elevation = CardDefaults.cardElevation(8.dp),
     ) {
         Surface(shape = RoundedCornerShape(8.dp),
             modifier = modifier
                 .fillMaxWidth()
-                .height(140.dp),) {
+                .height(180.dp),) {
             Box(modifier = modifier
                 .fillMaxSize()
                 .background(colorScheme.tertiary)){
-                Text(text = "IMAGE", modifier = modifier.align(Alignment.Center))
+                AsyncImage(model = ImageRequest.Builder(LocalContext.current)
+                    .data(recipe.photos[0])
+                    .crossfade(true)
+                    .build(),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = modifier.fillMaxSize())
             }
         }
         Box(modifier = modifier
@@ -67,14 +78,14 @@ fun RecipeCard(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = title,
+                    text = recipe.title,
                     modifier = modifier,
                     style = typography.titleMedium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = description,
+                    text = recipe.description,
                     modifier = modifier.padding(start = 32.dp, end = 32.dp, bottom = 4.dp, top = 2.dp),
                     style = typography.bodySmall,
                     textAlign = TextAlign.Center,
@@ -84,7 +95,7 @@ fun RecipeCard(
             }
 
             Text(
-                text = "$cookingTime min",
+                text = "${recipe.cookingTime} min",
                 modifier = modifier
                     .align(Alignment.BottomStart)
                     .padding(8.dp),
@@ -149,11 +160,7 @@ fun ContentCard(
 @Composable
 private fun RecipeCardPreview() {
     ONPLATETheme {
-        RecipeCard(
-            title = "Pasta",
-            description = "Spaghetti and meatballs are a classic family-friendly dinner." +
-                " This recipe is great for batch cooking so you can save extra portions in the freezer.",
-            cookingTime = 45)
+//        RecipeCard(recipe = )
     }
 }
 

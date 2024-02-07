@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
@@ -80,8 +81,14 @@ fun HorizontalSlider(
             }
         }
 
-        IconButton(modifier = modifier.align(Alignment.CenterStart),
-            enabled = pagerState.canScrollBackward, onClick = {
+        IconButton(modifier = modifier
+            .align(Alignment.CenterStart)
+            .height(imageHeight),
+            colors = IconButtonDefaults.iconButtonColors(
+                contentColor = colorScheme.primary,
+                disabledContentColor = colorScheme.secondary),
+            enabled = pagerState.canScrollBackward,
+            onClick = {
                 scope.launch {
                     pagerState.animateScrollToPage(pagerState.currentPage - 1)
                 }
@@ -89,8 +96,14 @@ fun HorizontalSlider(
             Icon(backwardIcon, contentDescription = "backward")
         }
 
-        IconButton(modifier = modifier.align(Alignment.CenterEnd),
-            enabled = pagerState.canScrollForward, onClick = {
+        IconButton(modifier = modifier
+            .align(Alignment.CenterEnd)
+            .height(imageHeight),
+            colors = IconButtonDefaults.iconButtonColors(
+                contentColor = colorScheme.primary,
+                disabledContentColor = colorScheme.secondary),
+            enabled = pagerState.canScrollForward,
+            onClick = {
             scope.launch {
                 pagerState.animateScrollToPage(pagerState.currentPage + 1)
             }
@@ -100,7 +113,7 @@ fun HorizontalSlider(
 
         Row(
             modifier
-                .height(20.dp)
+                .height(16.dp)
                 .align(Alignment.BottomCenter),
         ) {
             repeat(sliderList.size) {
@@ -109,7 +122,7 @@ fun HorizontalSlider(
                 Box(modifier = modifier
                     .padding(2.dp)
                     .clip(CircleShape)
-                    .size(10.dp)
+                    .size(8.dp)
                     .background(color)
                     .clickable {
                         scope.launch {

@@ -1,5 +1,6 @@
 package com.supersonic.onplate.navigation
 
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -50,20 +51,34 @@ fun RootAppNavigation(
 
             MainScreen(
                 viewModel = viewModel,
-                onNavigationToRecipe = {
-                    navController.navigate(route = Routes.RecipeScreen.route)
+                onNavigationToRecipe = {selectedRecipe ->
+                    navController.navigate("${Routes.RecipeScreen.route}/${selectedRecipe.id}") {
+                    }
                 },
-                onNavigationToAddRecipe = {
-                    navController.navigate(route = Routes.AddRecipeScreen.route)
-                })
+                onNavigationToAddRecipe = { navController.navigate(route = Routes.AddRecipeScreen.route) },
+            )
+
+
         }
 
         // Recipe Screen
 
-        composable(Routes.RecipeScreen.route) {
+        composable(Routes.RecipeScreen.route + "/{recipeId}") { backStackEntry ->
+
             val viewModel = hiltViewModel<RecipeScreenViewModel>()
 
-            RecipeScreen(viewModel = viewModel)
+            val recipeId = backStackEntry.arguments?.getString("recipeId")?.toIntOrNull()
+
+            if (recipeId != null) {
+                val recipe = viewModel.getRecipeById(recipeId)
+
+                RecipeScreen(viewModel = viewModel, onBackClick = {
+                                                                  navController.navigateUp()
+                }, recipe = recipe)
+            } else {
+                Text("Error: Recipe ID not found =(")
+            }
+
 
         }
 
