@@ -1,8 +1,6 @@
 package com.supersonic.onplate.pages.main
 
 import android.widget.Toast
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -15,7 +13,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -47,16 +44,17 @@ fun MainScreen(
                 modifier = Modifier.padding(it),
                 recipes = recipes,
                 onNavigationToRecipe = onNavigationToRecipe,
-                onNavigationToAddRecipe = onNavigationToAddRecipe
             )
         },
         floatingActionButtonPosition = FabPosition.End,
         floatingActionButton = {
             Fab(
+                onClick = { onNavigationToAddRecipe.invoke() },
                 icon = {
                     Icon(Icons.Filled.Add, contentDescription = null)
                 },
-                text = "Add Recipe")
+                text = stringResource(R.string.button_newRecipe)
+            )
         }
     )
 
@@ -86,28 +84,14 @@ private fun MainScreenContent(
     modifier: Modifier,
     recipes: List<Recipe>,
     onNavigationToRecipe: (Recipe) -> Unit,
-    onNavigationToAddRecipe: () -> Unit
 ) {
 
-    Column(
-        modifier = modifier
-    ) {
-
-        Text(
-            text = "Navigate to Add Recipe Screen",
-            modifier = Modifier.clickable {
-                onNavigationToAddRecipe.invoke()
-            }
-        )
-
-        LazyColumn {
-            items(recipes){recipe ->
-                RecipeCard(recipe = recipe){
-                    onNavigationToRecipe.invoke(recipe)
-                }
+    LazyColumn(modifier = modifier) {
+        items(recipes){recipe ->
+            RecipeCard(recipe = recipe){
+                onNavigationToRecipe.invoke(recipe)
             }
         }
-
     }
 }
 

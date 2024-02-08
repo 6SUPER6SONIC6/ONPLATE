@@ -5,5 +5,5 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 @HiltViewModel
-class AddRecipeScreenViewModel @Inject constructor() : ViewModel() {
+class NewRecipeScreenViewModel @Inject constructor() : ViewModel() {
 }

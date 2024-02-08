@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -40,13 +40,11 @@ fun RecipeScreen(
         }
     )
 
-
-    
 }
 
 @Composable
 private fun RecipeTopBar(onBackClick: () -> Unit) {
-    TopBar(title = "Recipe Screen", onBackClick = onBackClick)
+    TopBar(title = stringResource(R.string.recipe_screen), onBackClick = onBackClick)
 }
 
 @Composable
@@ -79,6 +77,7 @@ private fun OverviewCard(title: String, description: String, cookingTime: Int) {
     ContentCard(cardTitle = stringResource(R.string.cardTitle_overview), modifier = Modifier.padding(8.dp)){
         Text(
             text = "$cookingTime min",
+            style = typography.labelSmall,
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(8.dp)
@@ -92,14 +91,14 @@ private fun OverviewCard(title: String, description: String, cookingTime: Int) {
         ) {
             Text(
                 text = title,
-                style = MaterialTheme.typography.titleLarge,
+                style = typography.titleLarge,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
             Text(
                 text = description,
                 modifier = Modifier.padding(top = 2.dp),
-                style = MaterialTheme.typography.bodyLarge,
+                style = typography.bodyLarge,
                 textAlign = TextAlign.Center,
                 overflow = TextOverflow.Ellipsis
             )
@@ -117,7 +116,7 @@ private fun IngredientsCard(ingredientsList: List<String>) {
                 .padding(vertical = 16.dp, horizontal = 8.dp)
         ) {
             ingredientsList.forEach{ingredient ->
-                Text(text = "$ingredient;", modifier = Modifier.padding(2.dp), style = MaterialTheme.typography.bodyLarge)
+                Text(text = "$ingredient;", modifier = Modifier.padding(2.dp), style = typography.bodyLarge)
             }
         }
     }
@@ -135,8 +134,10 @@ private fun DirectionsCard(directionsList: List<String>) {
             directionsList.forEach {step ->
                 val stepCount = directionsList.indexOf(step) + 1
                 Column {
-                    Text(text = "Step $stepCount", modifier = Modifier.padding(2.dp), style = MaterialTheme.typography.titleMedium)
-                    Text(text = step, modifier = Modifier.padding(2.dp), style = MaterialTheme.typography.bodyLarge)
+                    Text(text = "Step $stepCount", modifier = Modifier
+                        .padding(2.dp)
+                        .align(Alignment.CenterHorizontally), style = typography.titleMedium)
+                    Text(text = step, modifier = Modifier.padding(2.dp), style = typography.bodyLarge)
                 }
             }
         }

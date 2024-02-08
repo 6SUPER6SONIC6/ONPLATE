@@ -36,12 +36,13 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.supersonic.onplate.models.Recipe
 import com.supersonic.onplate.ui.theme.ONPLATETheme
+import com.supersonic.onplate.utils.MockUtils
 
 @Composable
 fun RecipeCard(
     modifier: Modifier = Modifier,
     recipe: Recipe,
-    onItemClick: (Recipe) -> Unit
+    onItemClick: (Recipe) -> Unit,
 ) {
     Card(
         modifier = modifier
@@ -51,6 +52,7 @@ fun RecipeCard(
             .clickable { onItemClick(recipe) },
         shape = CardDefaults.shape,
         elevation = CardDefaults.cardElevation(8.dp),
+        colors = CardDefaults.cardColors(colorScheme.secondaryContainer)
     ) {
         Surface(shape = RoundedCornerShape(8.dp),
             modifier = modifier
@@ -73,7 +75,6 @@ fun RecipeCard(
             ) {
             Column(
                 modifier = modifier
-                    .fillMaxSize()
                     .padding(top = 4.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -159,20 +160,23 @@ fun ContentCard(
 @Preview(widthDp = 480)
 @Composable
 private fun RecipeCardPreview() {
+
+    val recipe = MockUtils.loadMockRecipes()[0]
+
     ONPLATETheme {
-//        RecipeCard(recipe = )
+        RecipeCard(recipe = recipe, onItemClick = {})
     }
 }
 
-@Preview(widthDp = 480, showBackground = true)
+@Preview(widthDp = 480, showBackground = false)
 @Composable
 private fun ContentCardPreview() {
     ONPLATETheme {
 
             ContentCard(cardTitle = "Overview"){
                 Text(
-                        text = "45 min",
-                modifier = Modifier
+                    text = "45 min",
+                    modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(8.dp)
                 )
