@@ -1,5 +1,6 @@
 package com.supersonic.onplate.ui.components
 
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -34,14 +35,19 @@ import com.supersonic.onplate.ui.theme.ONPLATETheme
  * @param maxLines The maximum number of lines for the text field (default is 1).
  * @param height The height of the text field.
  */
+
 @Composable
 fun RecipeTextField(
+    modifier: Modifier = Modifier,
     value:String,
     onValueChange: (String) -> Unit,
     label: String,
     placeholder: String = "",
     maxLines: Int = 1,
-    height: Dp = 56.dp
+    height: Dp = 56.dp,
+    singleLine: Boolean = false,
+    readOnly: Boolean = false,
+    interactionSource: MutableInteractionSource = remember { MutableInteractionSource() }
 ) {
 
     var focusState by remember { mutableStateOf(false) }
@@ -49,7 +55,7 @@ fun RecipeTextField(
     val labelColor = if (focusState) colorScheme.primary else colorScheme.secondary
     val labelFontWeight = if (focusState) FontWeight.SemiBold else FontWeight.Normal
 
-    Column(modifier = Modifier.fillMaxWidth()) {
+    Column(modifier = modifier) {
         Text(label, color = labelColor, fontWeight = labelFontWeight)
         OutlinedTextField(
             value = value,
@@ -62,7 +68,10 @@ fun RecipeTextField(
                 focusedContainerColor = colorScheme.background,
                 focusedBorderColor = colorScheme.primary
             ),
-            modifier = Modifier
+            singleLine = singleLine,
+            readOnly = readOnly,
+            interactionSource = interactionSource,
+            modifier = modifier
                 .onFocusChanged { focusState = it.isFocused }
                 .fillMaxWidth()
                 .height(height),

@@ -9,4 +9,7 @@
 
     <string name="screen_NewRecipe">New Recipe</string>
     <string name="button_newRecipe">New Recipe</string>
+    <string name="textField_label_title">Title</string>
+    <string name="textField_label_description">Description</string>
+    <string name="textField_label_cooking_time">Cooking Time</string>
 </resources>

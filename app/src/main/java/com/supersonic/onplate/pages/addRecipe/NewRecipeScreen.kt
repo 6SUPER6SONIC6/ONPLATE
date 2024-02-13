@@ -1,13 +1,15 @@
 package com.supersonic.onplate.pages.addRecipe
 
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -18,6 +20,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.supersonic.onplate.R
 import com.supersonic.onplate.ui.components.ContentCard
+import com.supersonic.onplate.ui.components.RecipeTextField
+import com.supersonic.onplate.ui.components.TimePickerDialog
 import com.supersonic.onplate.ui.components.TopBar
 import com.supersonic.onplate.ui.theme.ONPLATETheme
 
@@ -28,25 +32,27 @@ fun NewRecipeScreen(
 ) {
     Scaffold(
         topBar = {
-                 AddRecipeTopBar(onBackClick)
+                 NewRecipeTopBar(onBackClick)
         },
         content = {
-                  AddRecipeScreenContent(modifier = Modifier.padding(it))
+                  NewRecipeScreenContent(modifier = Modifier.padding(it))
         },
     )
 }
 
 
 @Composable
-private fun AddRecipeTopBar(onBackClick: () -> Unit) {
+private fun NewRecipeTopBar(onBackClick: () -> Unit) {
     TopBar(title = stringResource(R.string.screen_NewRecipe), onBackClick = onBackClick)
 }
 
 @Composable
-private fun AddRecipeScreenContent(modifier: Modifier) {
+private fun NewRecipeScreenContent(modifier: Modifier) {
     Column(
         modifier = modifier
     ) {
+
+        OverviewCard()
 
         /*Photos
         ContentCard(cardTitle = stringResource(R.string.cardTitle_photos), modifier = Modifier.padding(8.dp)) {
@@ -102,22 +108,72 @@ private fun AddRecipeScreenContent(modifier: Modifier) {
 @Composable
 private fun OverviewCard() {
 
-    ContentCard(cardTitle = stringResource(id = R.string.cardTitle_overview),
-        modifier = Modifier.padding(8.dp)) {
+    ContentCard(cardTitle = stringResource(id = R.string.cardTitle_overview),) {
 
         var title by remember { mutableStateOf("") }
+        var description by remember { mutableStateOf("") }
+        var hour by remember { mutableIntStateOf(0) }
+        var minute by remember { mutableIntStateOf(0) }
 
         Column(modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 32.dp, horizontal = 8.dp),
+            .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally) {
 
-            OutlinedTextField(
+            RecipeTextField(
                 value = title,
-                onValueChange = { title = it },
-                modifier = Modifier,
-                label = { Text("Title") }
+                onValueChange = {title = it},
+                label = stringResource(R.string.textField_label_title),
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
             )
+
+            RecipeTextField(
+                modifier = Modifier.padding(top = 8.dp),
+                value = description,
+                onValueChange = {description = it},
+                label = stringResource(R.string.textField_label_description),
+                maxLines = 3,
+                height = 112.dp,
+            )
+
+            var openTimePickerDialog by remember { mutableStateOf(false) }
+
+            RecipeTextField(value = when {
+                hour == 0 -> "$minute minutes"
+                hour == 1 -> "$hour hour $minute minutes"
+                hour == 1 && minute == 0 -> "$hour hour"
+                minute == 0 -> "$hour hours"
+
+
+                else -> {"$hour hours $minute minutes"}
+            },
+                onValueChange = {}, label = stringResource(R.string.textField_label_cooking_time),
+                singleLine = true,
+                readOnly = true,
+                interactionSource = remember { MutableInteractionSource() }
+                    .also { interactionSource ->
+                          LaunchedEffect(interactionSource) {
+                              interactionSource.interactions.collect() {
+                                  if (it is PressInteraction.Release) {
+                                      openTimePickerDialog = true
+                                  }
+                              }
+                          }
+                    },
+                )
+
+            when {
+                openTimePickerDialog -> {
+                    TimePickerDialog(
+                        initialHour = hour,
+                        initialMinute = minute,
+                        onHourSelected = {hour = it},
+                        onMinuteSelected = {minute = it},
+                        onCancel = {openTimePickerDialog = false})
+                }
+            }
+
         }
 
     }

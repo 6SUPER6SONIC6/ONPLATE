@@ -22,6 +22,7 @@ import com.supersonic.onplate.ui.components.ContentCard
 import com.supersonic.onplate.ui.components.HorizontalSlider
 import com.supersonic.onplate.ui.components.TopBar
 import com.supersonic.onplate.ui.theme.ONPLATETheme
+import com.supersonic.onplate.utils.MockUtils
 
 
 @Composable
@@ -86,7 +87,7 @@ private fun OverviewCard(title: String, description: String, cookingTime: Int) {
             modifier =
             Modifier
                 .fillMaxWidth()
-                .padding(vertical = 16.dp, horizontal = 8.dp),
+                .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
@@ -113,7 +114,7 @@ private fun IngredientsCard(ingredientsList: List<String>) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 16.dp, horizontal = 8.dp)
+                .padding(16.dp)
         ) {
             ingredientsList.forEach{ingredient ->
                 Text(text = "$ingredient;", modifier = Modifier.padding(2.dp), style = typography.bodyLarge)
@@ -129,7 +130,7 @@ private fun DirectionsCard(directionsList: List<String>) {
     ContentCard(cardTitle = stringResource(R.string.cardTitle_directions), modifier = Modifier.padding(8.dp)) {
         Column(
             modifier = Modifier
-                .padding(vertical = 16.dp, horizontal = 8.dp)
+                .padding(16.dp)
         ) {
             directionsList.forEach {step ->
                 val stepCount = directionsList.indexOf(step) + 1
@@ -150,8 +151,10 @@ private fun DirectionsCard(directionsList: List<String>) {
 @Composable
 private fun RecipeScreenContentPreview() {
 
+    val recipe = MockUtils.loadMockRecipes()[0]
+
     ONPLATETheme {
-//        RecipeScreenContent(modifier = Modifier,)
+        RecipeScreenContent(modifier = Modifier, recipe)
     }
 
 }
