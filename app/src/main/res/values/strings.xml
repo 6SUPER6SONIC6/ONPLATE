@@ -5,11 +5,21 @@
     <string name="cardTitle_ingredients">Ingredients</string>
     <string name="cardTitle_directions">Directions</string>
     <string name="cardTitle_photos">Photos</string>
-    <string name="recipe_screen">Recipe Screen</string>
 
-    <string name="screen_NewRecipe">New Recipe</string>
-    <string name="button_newRecipe">New Recipe</string>
+    <string name="screenTitle_recipe">Recipe Screen</string>
+
+    <string name="screenTitle_NewRecipe">New Recipe</string>
+
+    <string name="fab_newRecipe">New Recipe</string>
+
     <string name="textField_label_title">Title</string>
     <string name="textField_label_description">Description</string>
     <string name="textField_label_cooking_time">Cooking Time</string>
+
+    <string name="dialog_button_cancel">Cancel</string>
+    <string name="dialog_button_confirm">Confirm</string>
+
+    <string name="textField_placeholder_title">Pasta with meatballs</string>
+    <string name="textField_placeholder_description">Recipe is great for batch cooking so you can save extra portions in the freezer.</string>
+    <string name="textField_placeholder_cooking_time">40 minutes</string>
 </resources>

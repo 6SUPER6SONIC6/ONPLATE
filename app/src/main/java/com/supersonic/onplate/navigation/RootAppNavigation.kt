@@ -8,10 +8,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.supersonic.onplate.pages.addRecipe.NewRecipeScreen
-import com.supersonic.onplate.pages.addRecipe.NewRecipeScreenViewModel
 import com.supersonic.onplate.pages.main.MainScreen
 import com.supersonic.onplate.pages.main.MainScreenViewModel
+import com.supersonic.onplate.pages.newRecipe.NewRecipeScreen
+import com.supersonic.onplate.pages.newRecipe.NewRecipeScreenViewModel
 import com.supersonic.onplate.pages.recipe.RecipeScreen
 import com.supersonic.onplate.pages.recipe.RecipeScreenViewModel
 import com.supersonic.onplate.pages.splashScreen.SplashScreen

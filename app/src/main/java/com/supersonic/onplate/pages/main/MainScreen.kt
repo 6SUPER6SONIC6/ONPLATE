@@ -53,7 +53,7 @@ fun MainScreen(
                 icon = {
                     Icon(Icons.Filled.Add, contentDescription = null)
                 },
-                text = stringResource(R.string.button_newRecipe)
+                text = stringResource(R.string.fab_newRecipe)
             )
         }
     )

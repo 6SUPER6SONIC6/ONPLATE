@@ -5,14 +5,12 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.MaterialTheme.colorScheme
@@ -30,15 +28,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.supersonic.onplate.R
 import com.supersonic.onplate.ui.theme.ONPLATETheme
 import com.supersonic.onplate.utils.TimePickerLists
 
+val timePickerListHours = TimePickerLists.getTimePickerListHours()
+val timePickerListMinutes = TimePickerLists.getTimePickerListMinutes()
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -48,9 +48,6 @@ fun TimePickerDialog(
     onHourSelected: (Int) -> Unit,
     onMinuteSelected: (Int) -> Unit,
     onCancel: () -> Unit) {
-
-    val timePickerListHours = TimePickerLists.getTimePickerListHours()
-    val timePickerListMinutes = TimePickerLists.getTimePickerListMinutes()
 
     val hoursPagerState = rememberPagerState(
         initialPage = initialHour,
@@ -75,34 +72,42 @@ fun TimePickerDialog(
 
     saveButtonEnabled = hoursPagerState.currentPage != 0 || minutesPagerState.currentPage != 0
 
+    val timePickerTextStyle = typography.displayLarge.copy(fontSize = 60.sp)
+
+
     
-    Dialog(onDismissRequest = onCancel) {
+    Dialog(onDismissRequest = onCancel, properties = DialogProperties(usePlatformDefaultWidth = false)) {
 
         Surface(
             shape = shapes.extraLarge,
             tonalElevation = 6.dp,
             modifier = Modifier
-                .fillMaxWidth()
-                .height(280.dp)
+                .fillMaxWidth(0.85f)
+                .alpha(0.95f)
         ) {
 
-
-
-            Box(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
                     text = stringResource(R.string.textField_label_cooking_time),
+                    style = typography.titleLarge,
                     modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .padding(4.dp), style = typography.titleLarge)
+                )
                 Row(
-                    modifier = Modifier.align(Alignment.Center).border(2.dp, colorScheme.outline, shapes.medium).padding(4.dp)
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .padding(top = 16.dp, bottom = 24.dp)
+                        .border(1.dp, colorScheme.outline, shapes.medium)
+                        .size(width = 220.dp, height = 80.dp)
                 ) {
 
                     VerticalPager(
                         modifier = Modifier
-                            .size(80.dp)
-                            .align(Alignment.CenterVertically),
-                        state = hoursPagerState
+                            .size(80.dp),
+                        state = hoursPagerState,
                     ) { hour ->
 
                         selectedHour = hour
@@ -111,71 +116,60 @@ fun TimePickerDialog(
                             targetValue = if (hoursPagerState.currentPage == hour) 1f else 0.2f,
                             animationSpec = tween(
                                 durationMillis = 500,
-                                easing = LinearEasing),
+                                easing = LinearEasing
+                            ),
                             label = "Hour Alpha Animation"
                         )
+
                         Text(
                             text = if (selectedHour < 10) "0$selectedHour" else selectedHour.toString(),
-                            fontSize = 60.sp,
+                            style = timePickerTextStyle,
                             modifier = Modifier
-                                .fillMaxSize()
-                                .wrapContentSize(Alignment.Center)
-                                .alpha(numberAlpha),
-                            textAlign = TextAlign.Center
+                                .alpha(numberAlpha)
                         )
 
                     }
 
-                    Box(modifier = Modifier) {
-                        Text(
-                            ":",
-                            fontSize = 60.sp,
-                            modifier = Modifier
-                                .align(Alignment.Center)
-                                .wrapContentSize(Alignment.Center),
-                            textAlign = TextAlign.Center
-                        )
-                    }
-
-
+                    Text(
+                        ":",
+                        style = timePickerTextStyle,
+                    )
 
                     VerticalPager(
                         modifier = Modifier
-                            .size(80.dp)
-                            .align(Alignment.CenterVertically),
+                            .size(80.dp),
                         state = minutesPagerState
                     ) { minute ->
+
                         selectedMinute = minute
+
                         val numberAlpha: Float by animateFloatAsState(
                             targetValue = if (minutesPagerState.currentPage == minute) 1f else 0.2f,
                             animationSpec = tween(
                                 durationMillis = 500,
-                                easing = LinearEasing),
+                                easing = LinearEasing
+                            ),
                             label = "Minute Alpha Animation"
                         )
 
                         Text(
                             text = if (selectedMinute < 10) "0$selectedMinute" else selectedMinute.toString(),
-                            fontSize = 60.sp,
+                            style = timePickerTextStyle,
                             modifier = Modifier
-                                .fillMaxSize()
-                                .wrapContentSize(Alignment.Center)
                                 .alpha(numberAlpha),
-                            textAlign = TextAlign.Center
                         )
                     }
 
                 }
 
                 Row(
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(end = 8.dp)
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.align(Alignment.End)
 
                 ){
-
                     TextButton(onClick = {onCancel()}){
-                        Text("Cancel", style = typography.bodyLarge)
+                        Text(stringResource(R.string.dialog_button_cancel), style = typography.bodyLarge)
                     }
                     TextButton(onClick = {
                         onHourSelected(hoursPagerState.currentPage)
@@ -183,12 +177,11 @@ fun TimePickerDialog(
                         onCancel()
                     },
                         enabled = saveButtonEnabled
-                        ) {
-                        Text("Save", style = typography.bodyLarge)
+                    ) {
+                        Text(stringResource(R.string.dialog_button_confirm), style = typography.bodyLarge)
                     }
 
                 }
-
             }
         }
     }

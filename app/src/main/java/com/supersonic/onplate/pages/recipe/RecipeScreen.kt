@@ -45,7 +45,7 @@ fun RecipeScreen(
 
 @Composable
 private fun RecipeTopBar(onBackClick: () -> Unit) {
-    TopBar(title = stringResource(R.string.recipe_screen), onBackClick = onBackClick)
+    TopBar(title = stringResource(R.string.screenTitle_recipe), onBackClick = onBackClick)
 }
 
 @Composable

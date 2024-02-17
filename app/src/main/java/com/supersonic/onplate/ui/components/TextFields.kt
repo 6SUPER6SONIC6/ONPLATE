@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme.colorScheme
+import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -41,7 +42,7 @@ fun RecipeTextField(
     modifier: Modifier = Modifier,
     value:String,
     onValueChange: (String) -> Unit,
-    label: String,
+    label: String? = null,
     placeholder: String = "",
     maxLines: Int = 1,
     height: Dp = 56.dp,
@@ -56,7 +57,11 @@ fun RecipeTextField(
     val labelFontWeight = if (focusState) FontWeight.SemiBold else FontWeight.Normal
 
     Column(modifier = modifier) {
-        Text(label, color = labelColor, fontWeight = labelFontWeight)
+
+        if (label != null){
+            Text(label, color = labelColor, fontWeight = labelFontWeight, style = typography.labelLarge)
+        }
+        
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
@@ -66,14 +71,17 @@ fun RecipeTextField(
             colors = OutlinedTextFieldDefaults.colors(
                 unfocusedContainerColor = colorScheme.background,
                 focusedContainerColor = colorScheme.background,
-                focusedBorderColor = colorScheme.primary
+
+                focusedBorderColor = colorScheme.primary,
+
+                focusedPlaceholderColor = colorScheme.outline,
+                unfocusedPlaceholderColor = colorScheme.outline
             ),
             singleLine = singleLine,
             readOnly = readOnly,
             interactionSource = interactionSource,
             modifier = modifier
                 .onFocusChanged { focusState = it.isFocused }
-                .fillMaxWidth()
                 .height(height),
         )
     }
