@@ -44,6 +44,7 @@ fun RecipeTextField(
     onValueChange: (String) -> Unit,
     label: String? = null,
     placeholder: String = "",
+    trailingIcon: @Composable() (() -> Unit)? = null,
     maxLines: Int = 1,
     height: Dp = 56.dp,
     singleLine: Boolean = false,
@@ -66,6 +67,7 @@ fun RecipeTextField(
             value = value,
             onValueChange = onValueChange,
             placeholder = { Text(placeholder)},
+            trailingIcon = trailingIcon,
             shape = RoundedCornerShape(8.dp),
             maxLines = maxLines,
             colors = OutlinedTextFieldDefaults.colors(

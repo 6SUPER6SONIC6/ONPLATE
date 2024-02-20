@@ -74,7 +74,7 @@ private val DarkColors = darkColorScheme(
 @Composable
 fun ONPLATETheme(
     useDarkTheme: Boolean = isSystemInDarkTheme(),
-    content: @Composable() () -> Unit
+    content: @Composable () -> Unit
 ) {
     val colors = if (!useDarkTheme) {
         LightColors
@@ -84,6 +84,7 @@ fun ONPLATETheme(
 
     MaterialTheme(
         colorScheme = colors,
+        typography = Typography,
         content = content
     )
 }

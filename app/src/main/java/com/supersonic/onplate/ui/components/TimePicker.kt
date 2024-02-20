@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.MaterialTheme.colorScheme
@@ -82,7 +83,7 @@ fun TimePickerDialog(
             shape = shapes.extraLarge,
             tonalElevation = 6.dp,
             modifier = Modifier
-                .fillMaxWidth(0.85f)
+                .width(320.dp)
                 .alpha(0.95f)
         ) {
 

@@ -66,7 +66,6 @@ private fun RecipeScreenContent(modifier: Modifier, recipe: Recipe) {
 private fun PhotosCard(photosList: List<String>) {
 
     ContentCard(cardTitle = stringResource(R.string.cardTitle_photos), modifier = Modifier.padding(8.dp)) {
-        
         HorizontalSlider(sliderList = photosList)
     }
 

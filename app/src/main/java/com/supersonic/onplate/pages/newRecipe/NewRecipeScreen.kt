@@ -41,7 +41,8 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.supersonic.onplate.R
-import com.supersonic.onplate.pages.newRecipe.Iingredients.IngredientsList
+import com.supersonic.onplate.pages.newRecipe.directions.StepsList
+import com.supersonic.onplate.pages.newRecipe.ingredients.IngredientsList
 import com.supersonic.onplate.ui.components.ContentCard
 import com.supersonic.onplate.ui.components.RecipeTextField
 import com.supersonic.onplate.ui.components.TimePickerDialog
@@ -72,21 +73,23 @@ private fun NewRecipeTopBar(onBackClick: () -> Unit) {
 @Composable
 private fun NewRecipeScreenContent(modifier: Modifier, viewModel: NewRecipeScreenViewModel) {
     Column(
-        modifier = modifier.verticalScroll(rememberScrollState())
+        modifier = modifier
+            .verticalScroll(rememberScrollState())
     ) {
 
-        OverviewCard(modifier)
-        IngredientsCard(modifier = modifier, viewModel = viewModel)
-        PhotosCard(modifier)
+        OverviewCard()
+        IngredientsCard(viewModel = viewModel)
+        DirectionsCard(viewModel = viewModel)
+        PhotosCard()
 
     }
 
 }
 
 @Composable
-private fun OverviewCard(modifier: Modifier) {
+private fun OverviewCard() {
 
-    ContentCard(cardTitle = stringResource(id = R.string.cardTitle_overview), modifier = modifier.padding(8.dp)) {
+    ContentCard(cardTitle = stringResource(id = R.string.cardTitle_overview), modifier = Modifier.padding(8.dp)) {
 
         Column(modifier = Modifier
             .fillMaxWidth()
@@ -180,11 +183,10 @@ private fun OverviewCard(modifier: Modifier) {
 
 @Composable
 private fun IngredientsCard(
-    modifier: Modifier,
     viewModel: NewRecipeScreenViewModel,
     ) {
 
-    ContentCard(cardTitle = stringResource(id = R.string.cardTitle_ingredients), modifier = modifier.padding(8.dp)) {
+    ContentCard(cardTitle = stringResource(id = R.string.cardTitle_ingredients), modifier = Modifier.padding(8.dp)) {
 
         Column(
             modifier = Modifier
@@ -201,9 +203,13 @@ private fun IngredientsCard(
                 )
 
             IconButton(
-                onClick = { viewModel.addEmptyIngredient() }, colors = IconButtonDefaults.iconButtonColors(
+                onClick = { viewModel.addEmptyIngredient() },
+                colors = IconButtonDefaults.iconButtonColors(
                     contentColor = colorScheme.onSecondaryContainer
-                )) {
+                ),
+                modifier = Modifier
+                    .padding(top = 8.dp)
+            ) {
                 Icon(
                     Icons.Filled.Add,
                     modifier = Modifier.size(32.dp),
@@ -211,18 +217,57 @@ private fun IngredientsCard(
                 )
             }
 
+
         }
     }
+}
+
+@Composable
+private fun DirectionsCard(
+    viewModel: NewRecipeScreenViewModel
+) {
+
+    ContentCard(cardTitle = stringResource(id = R.string.cardTitle_directions), modifier = Modifier.padding(8.dp)) {
+        Column(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            StepsList(
+                list = viewModel.steps,
+                onRemoveStep ={step ->
+                    viewModel.removeStep(step)
+                },
+                removeEnabled = viewModel.steps.size > 1
+            )
+
+            IconButton(
+                onClick = { viewModel.addEmptyStep() },
+                colors = IconButtonDefaults.iconButtonColors(
+                    contentColor = colorScheme.onSecondaryContainer
+                ),
+                modifier = Modifier.padding(top = 8.dp)
+            ) {
+                Icon(
+                    Icons.Filled.Add,
+                    modifier = Modifier.size(32.dp),
+                    contentDescription = null
+                )
+            }
+        }
+    }
+    
 }
 
 
 
 @Composable
 private fun PhotosCard(
-    modifier: Modifier,
-    photos: List<String> = emptyList()) {
+    photos: List<String> = emptyList()
+) {
 
-        ContentCard(cardTitle = stringResource(R.string.cardTitle_photos), modifier = modifier.padding(8.dp)) {
+        ContentCard(cardTitle = stringResource(R.string.cardTitle_photos), modifier = Modifier.padding(8.dp)) {
 
             LazyRow(
                 contentPadding = PaddingValues(vertical = 16.dp, horizontal = 8.dp)
@@ -281,7 +326,7 @@ private fun NewRecipeScreenContentPreview() {
 @Composable
 private fun OverviewCardPreview() {
     ONPLATETheme {
-        OverviewCard(Modifier)
+        OverviewCard()
     }
 }
 
@@ -289,7 +334,7 @@ private fun OverviewCardPreview() {
 @Composable
 private fun IngredientsCardPreview() {
     ONPLATETheme {
-        IngredientsCard(Modifier, viewModel = NewRecipeScreenViewModel())
+        IngredientsCard(viewModel = NewRecipeScreenViewModel())
     }
 }
 
@@ -297,6 +342,6 @@ private fun IngredientsCardPreview() {
 @Composable
 private fun PhotosCardPreview() {
     ONPLATETheme {
-        PhotosCard(Modifier)
+        PhotosCard()
     }
 }
