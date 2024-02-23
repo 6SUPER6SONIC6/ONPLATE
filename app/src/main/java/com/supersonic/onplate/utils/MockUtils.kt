@@ -1,6 +1,60 @@
 package com.supersonic.onplate.utils
 
 import com.supersonic.onplate.models.Recipe
+import com.supersonic.onplate.pages.newRecipe.directions.Step
+import com.supersonic.onplate.pages.newRecipe.ingredients.Ingredient
+
+val mockListIngredients = listOf(
+    "8 good-quality pork sausages",
+    "1 kg beef mince",
+    "1 onion, finely chopped",
+    "½ a large bunch flat-leaf parsley, finely chopped",
+    "85g parmesan, grated, plus extra to serve (optional)",
+    "100g fresh breadcrumbs",
+    "2 eggs, beaten with a fork",
+    "olive oil, for roasting",
+    "spaghetti, to serve (about 100g per portion)")
+
+val mockListDirections = listOf("First, make the meatballs." +
+        "Split the skins of the sausages and squeeze out the" +
+        " meat into a large mixing bowl.",
+    "Add the mince, onion, parsley, parmesan, breadcrumbs, eggs and lots of seasoning." +
+            " Get your hands in and mix together really well – the more you squeeze" +
+            " and mash the mince, the more tender the meatballs will be.",
+    "Heat the oven to 220C/200C fan/gas 7. Roll the mince mixture into about" +
+            " 50 golf-ball-sized meatballs. Set aside any meatballs for freezing," +
+            " allowing about five per portion, then spread the rest out in a large" +
+            " roasting tin – the meatballs will brown better if spaced out a bit.",
+    "Drizzle with a little oil (about 1 tsp per portion), shake to coat, then roast for 20-30 mins until browned.",
+    "Meanwhile, make the sauce. Heat the olive oil in a large saucepan. Add the garlic cloves and sizzle for 1 min.",
+    "Stir in the chopped tomatoes, red wine, if using, caster sugar, parsley and seasoning. Simmer for 15-20 mins " +
+            "until slightly thickened.",
+    "Stir in a few basil leaves, if using, spoon out any portions for freezing, then add the cooked meatballs to the " +
+            "pan to keep warm while you cook the spaghetti in a pan of boiling, salted water.",
+    "Spoon the sauce and meatballs over spaghetti, or stir them all together and serve with extra " +
+            "parmesan and a few basil leaves, if you like.")
+
+
+private fun loadMockIngredients() : List<Ingredient> {
+
+    val ingredients : MutableList<Ingredient> = emptyList<Ingredient>().toMutableList()
+
+    mockListIngredients.forEachIndexed { index, item ->
+        ingredients.add(index, Ingredient(index, item))
+    }
+
+    return ingredients
+}
+private fun loadMockDirections() : List<Step> {
+
+    val directions : MutableList<Step> = emptyList<Step>().toMutableList()
+
+    mockListDirections.forEachIndexed { index, item ->
+        directions.add(index, Step(index, item))
+    }
+
+    return directions
+}
 
 object MockUtils {
     fun loadMockRecipes(): List<Recipe> {
@@ -9,44 +63,19 @@ object MockUtils {
                 0,
                 "Pasta with meatballs",
                 "Spaghetti and meatballs are a classic family-friendly dinner. This recipe is great for batch cooking so you can save extra portions in the freezer.",
-                listOf("8 good-quality pork sausages",
-                    "1 kg beef mince",
-                    "1 onion, finely chopped",
-                    "½ a large bunch flat-leaf parsley, finely chopped",
-                    "85g parmesan, grated, plus extra to serve (optional)",
-                    "100g fresh breadcrumbs",
-                    "2 eggs, beaten with a fork",
-                    "olive oil, for roasting",
-                    "spaghetti, to serve (about 100g per portion)"),
-                listOf("First, make the meatballs." +
-                        "Split the skins of the sausages and squeeze out the" +
-                        " meat into a large mixing bowl.",
-                    "Add the mince, onion, parsley, parmesan, breadcrumbs, eggs and lots of seasoning." +
-                            " Get your hands in and mix together really well – the more you squeeze" +
-                            " and mash the mince, the more tender the meatballs will be.",
-                    "Heat the oven to 220C/200C fan/gas 7. Roll the mince mixture into about" +
-                            " 50 golf-ball-sized meatballs. Set aside any meatballs for freezing," +
-                            " allowing about five per portion, then spread the rest out in a large" +
-                            " roasting tin – the meatballs will brown better if spaced out a bit.",
-                    "Drizzle with a little oil (about 1 tsp per portion), shake to coat, then roast for 20-30 mins until browned.",
-                    "Meanwhile, make the sauce. Heat the olive oil in a large saucepan. Add the garlic cloves and sizzle for 1 min.",
-                    "Stir in the chopped tomatoes, red wine, if using, caster sugar, parsley and seasoning. Simmer for 15-20 mins " +
-                            "until slightly thickened.",
-                    "Stir in a few basil leaves, if using, spoon out any portions for freezing, then add the cooked meatballs to the " +
-                            "pan to keep warm while you cook the spaghetti in a pan of boiling, salted water.",
-                    "Spoon the sauce and meatballs over spaghetti, or stir them all together and serve with extra " +
-                            "parmesan and a few basil leaves, if you like."),
+                loadMockIngredients(),
+                loadMockDirections(),
                 45,
-                listOf(
-                    "https://images.immediate.co.uk/production/volatile/sites/30/2020/08/recipe-image-legacy-id-1035708_10-fdc5ae0.jpg?quality=90&webp=true&resize=440,400",
-                    "https://s23209.pcdn.co/wp-content/uploads/2022/09/220223_DD_Spaghetti-Meatballs_198.jpg",
-                    "https://realfood.tesco.com/media/images/RFO-Meatballs-LargeHero-1400x919-070796c4-0009-4b24-ac5a-b00e1085ecea-0-1400x920.jpg",
-                    "https://cravinghomecooked.com/wp-content/uploads/2020/02/spaghetti-and-meatballs-1.jpg",
-                    "https://www.simplyrecipes.com/thmb/Boo37yZBqeSpmELBIP_BBX_yVlU=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/Simply-Recipes-Spaghetti-And-Meatballs-LEAD-3-40bdae68ea144751a8e0a4b0f972af2d.jpg",
-                    "https://www.courtneyssweets.com/wp-content/uploads/2018/09/garlic-olive-oil-pasta-with-meatballs-and-spinach-8.jpg",
-                )
+//                listOf(
+//                    "https://images.immediate.co.uk/production/volatile/sites/30/2020/08/recipe-image-legacy-id-1035708_10-fdc5ae0.jpg?quality=90&webp=true&resize=440,400",
+//                    "https://s23209.pcdn.co/wp-content/uploads/2022/09/220223_DD_Spaghetti-Meatballs_198.jpg",
+//                    "https://realfood.tesco.com/media/images/RFO-Meatballs-LargeHero-1400x919-070796c4-0009-4b24-ac5a-b00e1085ecea-0-1400x920.jpg",
+//                    "https://cravinghomecooked.com/wp-content/uploads/2020/02/spaghetti-and-meatballs-1.jpg",
+//                    "https://www.simplyrecipes.com/thmb/Boo37yZBqeSpmELBIP_BBX_yVlU=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/Simply-Recipes-Spaghetti-And-Meatballs-LEAD-3-40bdae68ea144751a8e0a4b0f972af2d.jpg",
+//                    "https://www.courtneyssweets.com/wp-content/uploads/2018/09/garlic-olive-oil-pasta-with-meatballs-and-spinach-8.jpg",
+//                )
             ),
-
+/*
             Recipe(
                 1,
                 "Chilli con carne",
@@ -180,6 +209,8 @@ object MockUtils {
                     "https://www.errenskitchen.com/wp-content/uploads/2019/02/Chili-con-carne-1200.jpg",
                 )
             ),
+
+ */
         )
     }
 }

@@ -18,6 +18,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.supersonic.onplate.R
 import com.supersonic.onplate.models.Recipe
+import com.supersonic.onplate.pages.newRecipe.directions.Step
+import com.supersonic.onplate.pages.newRecipe.ingredients.Ingredient
 import com.supersonic.onplate.ui.components.ContentCard
 import com.supersonic.onplate.ui.components.HorizontalSlider
 import com.supersonic.onplate.ui.components.TopBar
@@ -55,7 +57,7 @@ private fun RecipeScreenContent(modifier: Modifier, recipe: Recipe) {
         modifier = modifier
             .verticalScroll(rememberScrollState())
     ) {
-        PhotosCard(recipe.photos)
+        PhotosCard()
         OverviewCard(recipe.title, recipe.description, recipe.cookingTime)
         IngredientsCard(recipe.ingredients)
         DirectionsCard(recipe.directions)
@@ -63,7 +65,7 @@ private fun RecipeScreenContent(modifier: Modifier, recipe: Recipe) {
 }
 
 @Composable
-private fun PhotosCard(photosList: List<String>) {
+private fun PhotosCard(photosList: List<String> = emptyList()) {
 
     ContentCard(cardTitle = stringResource(R.string.cardTitle_photos), modifier = Modifier.padding(8.dp)) {
         HorizontalSlider(sliderList = photosList)
@@ -107,7 +109,7 @@ private fun OverviewCard(title: String, description: String, cookingTime: Int) {
 }
 
 @Composable
-private fun IngredientsCard(ingredientsList: List<String>) {
+private fun IngredientsCard(ingredientsList: List<Ingredient>) {
 
     ContentCard(cardTitle = stringResource(R.string.cardTitle_ingredients), modifier = Modifier.padding(8.dp)) {
         Column(
@@ -116,7 +118,7 @@ private fun IngredientsCard(ingredientsList: List<String>) {
                 .padding(16.dp)
         ) {
             ingredientsList.forEach{ingredient ->
-                Text(text = "$ingredient;", modifier = Modifier.padding(2.dp), style = typography.bodyLarge)
+                Text(text = ingredient.value, modifier = Modifier.padding(2.dp), style = typography.bodyLarge)
             }
         }
     }
@@ -124,7 +126,7 @@ private fun IngredientsCard(ingredientsList: List<String>) {
 }
 
 @Composable
-private fun DirectionsCard(directionsList: List<String>) {
+private fun DirectionsCard(directionsList: List<Step>) {
 
     ContentCard(cardTitle = stringResource(R.string.cardTitle_directions), modifier = Modifier.padding(8.dp)) {
         Column(
@@ -137,7 +139,7 @@ private fun DirectionsCard(directionsList: List<String>) {
                     Text(text = "Step $stepCount", modifier = Modifier
                         .padding(2.dp)
                         .align(Alignment.CenterHorizontally), style = typography.titleMedium)
-                    Text(text = step, modifier = Modifier.padding(2.dp), style = typography.bodyLarge)
+                    Text(text = step.value, modifier = Modifier.padding(2.dp), style = typography.bodyLarge)
                 }
             }
         }
