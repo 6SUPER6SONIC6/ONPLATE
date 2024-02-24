@@ -54,6 +54,7 @@ fun RecipeCard(
         elevation = CardDefaults.cardElevation(8.dp),
         colors = CardDefaults.cardColors(colorScheme.secondaryContainer)
     ) {
+
         Surface(shape = RoundedCornerShape(8.dp),
             modifier = modifier
                 .fillMaxWidth()
@@ -62,7 +63,7 @@ fun RecipeCard(
                 .fillMaxSize()
                 .background(colorScheme.tertiary)){
                 AsyncImage(model = ImageRequest.Builder(LocalContext.current)
-                    .data(recipe.photos[0])
+                    .data("")
                     .crossfade(true)
                     .build(),
                     contentDescription = null,

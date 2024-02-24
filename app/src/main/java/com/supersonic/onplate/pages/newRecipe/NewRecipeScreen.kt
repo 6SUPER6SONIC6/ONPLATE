@@ -44,6 +44,7 @@ import com.supersonic.onplate.R
 import com.supersonic.onplate.pages.newRecipe.directions.StepsList
 import com.supersonic.onplate.pages.newRecipe.ingredients.IngredientsList
 import com.supersonic.onplate.ui.components.ContentCard
+import com.supersonic.onplate.ui.components.PrimaryButton
 import com.supersonic.onplate.ui.components.RecipeTextField
 import com.supersonic.onplate.ui.components.TimePickerDialog
 import com.supersonic.onplate.ui.components.TopBar
@@ -80,7 +81,12 @@ private fun NewRecipeScreenContent(modifier: Modifier, viewModel: NewRecipeScree
         OverviewCard()
         IngredientsCard(viewModel = viewModel)
         DirectionsCard(viewModel = viewModel)
-        PhotosCard()
+//        PhotosCard()
+        PrimaryButton(text = "Save",
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 16.dp)
+        ) {
+
+        }
 
     }
 
