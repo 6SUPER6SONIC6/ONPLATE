@@ -23,7 +23,8 @@ import com.supersonic.onplate.ui.theme.ONPLATETheme
 fun PrimaryButton(
     modifier: Modifier = Modifier,
     text: String,
-    onClick: () -> Unit = {  }
+    onClick: () -> Unit = {  },
+    enabled: Boolean = true
 ) {
     Box(
         modifier = modifier
@@ -31,6 +32,7 @@ fun PrimaryButton(
         Button(
             onClick = onClick,
             shape = RoundedCornerShape(8.dp),
+            enabled = enabled,
             modifier = modifier
                 .fillMaxWidth()
                 .height(48.dp)

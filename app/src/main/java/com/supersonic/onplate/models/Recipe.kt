@@ -16,5 +16,5 @@ data class Recipe(
     val description: String,
     val ingredients: List<Ingredient>,
     val directions: List<Step>,
-    val cookingTime: Int,
+    val cookingTime: String,
 )

@@ -29,6 +29,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -41,6 +42,8 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.supersonic.onplate.R
+import com.supersonic.onplate.models.RecipeUiState
+import com.supersonic.onplate.models.isValid
 import com.supersonic.onplate.pages.newRecipe.directions.StepsList
 import com.supersonic.onplate.pages.newRecipe.ingredients.IngredientsList
 import com.supersonic.onplate.ui.components.ContentCard
@@ -49,6 +52,7 @@ import com.supersonic.onplate.ui.components.RecipeTextField
 import com.supersonic.onplate.ui.components.TimePickerDialog
 import com.supersonic.onplate.ui.components.TopBar
 import com.supersonic.onplate.ui.theme.ONPLATETheme
+import kotlinx.coroutines.launch
 
 @Composable
 fun NewRecipeScreen(
@@ -60,7 +64,12 @@ fun NewRecipeScreen(
                  NewRecipeTopBar(onBackClick)
         },
         content = {
-                  NewRecipeScreenContent(modifier = Modifier.padding(it), viewModel = viewModel)
+                  NewRecipeScreenContent(
+                      modifier = Modifier.padding(it),
+                      onBackClick = onBackClick,
+                      recipeUiState = viewModel.recipeUiState,
+                      onRecipeValueChange = viewModel::updateUiState,
+                      viewModel = viewModel)
         },
     )
 }
@@ -72,28 +81,46 @@ private fun NewRecipeTopBar(onBackClick: () -> Unit) {
 }
 
 @Composable
-private fun NewRecipeScreenContent(modifier: Modifier, viewModel: NewRecipeScreenViewModel) {
+private fun NewRecipeScreenContent(
+    modifier: Modifier,
+    recipeUiState: RecipeUiState,
+    onRecipeValueChange: (RecipeUiState) -> Unit,
+    viewModel: NewRecipeScreenViewModel,
+    onBackClick: () -> Unit
+) {
+
+    val coroutineScope = rememberCoroutineScope()
+
     Column(
         modifier = modifier
             .verticalScroll(rememberScrollState())
     ) {
 
-        OverviewCard()
-        IngredientsCard(viewModel = viewModel)
-        DirectionsCard(viewModel = viewModel)
+        OverviewCard(recipeUiState = recipeUiState, onValueChange = onRecipeValueChange)
+        IngredientsCard(recipeUiState = recipeUiState, onValueChange = onRecipeValueChange, viewModel = viewModel)
+        DirectionsCard(recipeUiState = recipeUiState, onValueChange = onRecipeValueChange, viewModel = viewModel)
 //        PhotosCard()
         PrimaryButton(text = "Save",
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 16.dp)
-        ) {
-
-        }
+            enabled = recipeUiState.isValid(),
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 16.dp),
+            onClick = {
+                onRecipeValueChange(recipeUiState.copy(ingredients = viewModel.ingredients, directions = viewModel.steps))
+                coroutineScope.launch {
+                    viewModel.saveRecipe()
+                    onBackClick()
+                }
+            }
+        )
 
     }
 
 }
 
 @Composable
-private fun OverviewCard() {
+private fun OverviewCard(
+    recipeUiState: RecipeUiState,
+    onValueChange: (RecipeUiState) -> Unit = {}
+) {
 
     ContentCard(cardTitle = stringResource(id = R.string.cardTitle_overview), modifier = Modifier.padding(8.dp)) {
 
@@ -109,8 +136,8 @@ private fun OverviewCard() {
                 modifier = Modifier
                     .padding(top = 8.dp)
                     .fillMaxWidth(),
-                value = title,
-                onValueChange = {title = it},
+                value = recipeUiState.title,
+                onValueChange = {onValueChange(recipeUiState.copy(title = it))},
                 label = stringResource(R.string.textField_label_title),
                 placeholder = stringResource(R.string.textField_placeholder_title),
                 singleLine = true,
@@ -123,8 +150,8 @@ private fun OverviewCard() {
                 modifier = Modifier
                     .padding(top = 8.dp)
                     .fillMaxWidth(),
-                value = description,
-                onValueChange = {description = it},
+                value = recipeUiState.description,
+                onValueChange = {onValueChange(recipeUiState.copy(description = it))},
                 label = stringResource(R.string.textField_label_description),
                 placeholder = stringResource(R.string.textField_placeholder_description),
                 maxLines = 3,
@@ -135,6 +162,7 @@ private fun OverviewCard() {
             var openTimePickerDialog by rememberSaveable { mutableStateOf(false) }
             var hour by rememberSaveable { mutableIntStateOf(0) }
             var minute by rememberSaveable { mutableIntStateOf(0) }
+
             val cookingTimeValue = when {
                 hour == 0 && minute == 0 -> ""
                 hour == 1 && minute == 0 -> "$hour hour"
@@ -153,7 +181,7 @@ private fun OverviewCard() {
                     .padding(top = 8.dp)
                     .fillMaxWidth(),
                 value = cookingTimeValue,
-                onValueChange = {},
+                onValueChange = {onValueChange(recipeUiState.copy(cookingTime = cookingTimeValue))},
                 label = stringResource(R.string.textField_label_cooking_time),
                 placeholder = stringResource(R.string.textField_placeholder_cooking_time),
                 singleLine = true,
@@ -189,10 +217,14 @@ private fun OverviewCard() {
 
 @Composable
 private fun IngredientsCard(
+    recipeUiState: RecipeUiState,
+    onValueChange: (RecipeUiState) -> Unit = {},
     viewModel: NewRecipeScreenViewModel,
     ) {
 
     ContentCard(cardTitle = stringResource(id = R.string.cardTitle_ingredients), modifier = Modifier.padding(8.dp)) {
+
+        val ingredientsList = viewModel.ingredients
 
         Column(
             modifier = Modifier
@@ -201,11 +233,11 @@ private fun IngredientsCard(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             IngredientsList(
-                list = viewModel.ingredients,
+                list = ingredientsList,
                 onRemoveIngredient = {ingredient ->
                     viewModel.removeIngredient(ingredient)
                 },
-                removeEnabled = viewModel.ingredients.size > 1
+                removeEnabled = ingredientsList.size > 1
                 )
 
             IconButton(
@@ -223,15 +255,21 @@ private fun IngredientsCard(
                 )
             }
 
-
         }
+
+//        onValueChange(recipeUiState.copy(ingredients = ingredientsList))
+
     }
 }
 
 @Composable
 private fun DirectionsCard(
+    recipeUiState: RecipeUiState,
+    onValueChange: (RecipeUiState) -> Unit = {},
     viewModel: NewRecipeScreenViewModel
 ) {
+
+    val stepsList = viewModel.steps
 
     ContentCard(cardTitle = stringResource(id = R.string.cardTitle_directions), modifier = Modifier.padding(8.dp)) {
         Column(
@@ -241,11 +279,11 @@ private fun DirectionsCard(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             StepsList(
-                list = viewModel.steps,
+                list = stepsList,
                 onRemoveStep ={step ->
                     viewModel.removeStep(step)
                 },
-                removeEnabled = viewModel.steps.size > 1
+                removeEnabled = stepsList.size > 1
             )
 
             IconButton(
@@ -262,6 +300,9 @@ private fun DirectionsCard(
                 )
             }
         }
+
+//        onValueChange(recipeUiState.copy(directions = stepsList))
+
     }
     
 }
@@ -324,7 +365,7 @@ private fun PhotosCard(
 @Composable
 private fun NewRecipeScreenContentPreview() {
     ONPLATETheme {
-        NewRecipeScreenContent(Modifier, viewModel = NewRecipeScreenViewModel())
+//        NewRecipeScreenContent(Modifier, viewModel = NewRecipeScreenViewModel())
     }
 }
 
@@ -332,7 +373,12 @@ private fun NewRecipeScreenContentPreview() {
 @Composable
 private fun OverviewCardPreview() {
     ONPLATETheme {
-        OverviewCard()
+        OverviewCard(
+            recipeUiState = RecipeUiState(
+                title = "Pasta",
+                description = "Pasta",
+            )
+        )
     }
 }
 
@@ -340,7 +386,7 @@ private fun OverviewCardPreview() {
 @Composable
 private fun IngredientsCardPreview() {
     ONPLATETheme {
-        IngredientsCard(viewModel = NewRecipeScreenViewModel())
+//        IngredientsCard(viewModel = NewRecipeScreenViewModel())
     }
 }
 

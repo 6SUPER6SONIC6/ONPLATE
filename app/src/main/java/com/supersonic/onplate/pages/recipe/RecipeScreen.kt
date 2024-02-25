@@ -74,11 +74,11 @@ private fun PhotosCard(photosList: List<String> = emptyList()) {
 }
 
 @Composable
-private fun OverviewCard(title: String, description: String, cookingTime: Int) {
+private fun OverviewCard(title: String, description: String, cookingTime: String) {
 
     ContentCard(cardTitle = stringResource(R.string.cardTitle_overview), modifier = Modifier.padding(8.dp)){
         Text(
-            text = "$cookingTime min",
+            text = cookingTime,
             style = typography.labelSmall,
             modifier = Modifier
                 .align(Alignment.TopEnd)

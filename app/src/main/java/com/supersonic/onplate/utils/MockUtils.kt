@@ -65,7 +65,7 @@ object MockUtils {
                 "Spaghetti and meatballs are a classic family-friendly dinner. This recipe is great for batch cooking so you can save extra portions in the freezer.",
                 loadMockIngredients(),
                 loadMockDirections(),
-                45,
+                "45 min",
 //                listOf(
 //                    "https://images.immediate.co.uk/production/volatile/sites/30/2020/08/recipe-image-legacy-id-1035708_10-fdc5ae0.jpg?quality=90&webp=true&resize=440,400",
 //                    "https://s23209.pcdn.co/wp-content/uploads/2022/09/220223_DD_Spaghetti-Meatballs_198.jpg",

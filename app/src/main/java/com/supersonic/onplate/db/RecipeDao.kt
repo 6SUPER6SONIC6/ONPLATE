@@ -9,6 +9,7 @@ import androidx.room.Update
 import com.supersonic.onplate.models.Recipe
 import kotlinx.coroutines.flow.Flow
 
+
 @Dao
 interface RecipeDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
@@ -24,5 +25,5 @@ interface RecipeDao {
     fun getRecipe(id: Int): Flow<Recipe>
 
     @Query("SELECT * from recipes")
-    fun getAllRecipes(): Flow<Recipe>
+    fun getAllRecipes(): Flow<List<Recipe>>
 }
