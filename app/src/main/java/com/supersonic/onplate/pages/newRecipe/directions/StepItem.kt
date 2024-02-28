@@ -19,15 +19,17 @@ import com.supersonic.onplate.ui.components.RecipeTextField
 
 @Composable
 fun StepItem(
+    onStepValueChange: (Int, String) -> Unit,
     onRemoveStep: () -> Unit,
     removeEnabled: Boolean = true,
     id: Int
 ) {
-    var value by remember { mutableStateOf(id.toString()) }
+    var value by remember { mutableStateOf("") }
 
     RecipeTextField(
         value = value,
-        onValueChange = {value = it},
+        onValueChange = { value = it
+            onStepValueChange(id, it) },
         modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
         height = 112.dp,
         maxLines = 3,

@@ -1,6 +1,7 @@
 package com.supersonic.onplate.pages.main
 
 import android.widget.Toast
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -12,28 +13,40 @@ import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.supersonic.onplate.R
 import com.supersonic.onplate.models.Recipe
+import com.supersonic.onplate.navigation.NavigationDestination
 import com.supersonic.onplate.ui.components.Fab
 import com.supersonic.onplate.ui.components.RecipeCard
 import com.supersonic.onplate.ui.components.TopBar
 import com.supersonic.onplate.ui.theme.ONPLATETheme
 
+object MainScreenDestination : NavigationDestination {
+    override val route = "main"
+    override val titleRes = R.string.app_name
+}
+
 @Composable
 fun MainScreen(
     viewModel: MainScreenViewModel,
-    onNavigationToRecipe: (Recipe) -> Unit,
+    onNavigationToRecipe: (Int) -> Unit,
     onNavigationToAddRecipe: () -> Unit,
 ) {
 
-    val recipes = viewModel.loadRecipes()
+    val mainScreenUiState by viewModel.mainScreenUiState.collectAsState()
 
     Scaffold(
         topBar = {
@@ -42,8 +55,8 @@ fun MainScreen(
         content = {
             MainScreenContent(
                 modifier = Modifier.padding(it),
-                recipes = recipes,
-                onNavigationToRecipe = onNavigationToRecipe,
+                recipeList = mainScreenUiState.recipeList,
+                onRecipeClick = onNavigationToRecipe,
             )
         },
         floatingActionButtonPosition = FabPosition.End,
@@ -64,7 +77,7 @@ fun MainScreen(
 private fun MainTopBar() {
     val context = LocalContext.current
 
-    TopBar(title = stringResource(id = R.string.app_name),
+    TopBar(title = stringResource(MainScreenDestination.titleRes),
         isEnableBackIcon = false,
         actions = {
             IconButton(onClick = {
@@ -82,14 +95,34 @@ private fun MainTopBar() {
 @Composable
 private fun MainScreenContent(
     modifier: Modifier,
-    recipes: List<Recipe>,
-    onNavigationToRecipe: (Recipe) -> Unit,
+    recipeList: List<Recipe>,
+    onRecipeClick: (Int) -> Unit,
 ) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier
+    ) {
+        if (recipeList.isEmpty()) {
+            Text(text = "You haven't saved any recipes yet.",
+                textAlign = TextAlign.Center,
+                style = typography.titleLarge)
+        } else {
+            RecipeList(
+                recipeList = recipeList,
+                onRecipeClick = { onRecipeClick(it.id) }
+            )
+        }
+    }
+}
 
+@Composable
+private fun RecipeList(
+    recipeList: List<Recipe>, onRecipeClick: (Recipe) -> Unit, modifier: Modifier = Modifier
+) {
     LazyColumn(modifier = modifier) {
-        items(recipes){recipe ->
+        items(recipeList, key = { it.id }){ recipe ->
             RecipeCard(recipe = recipe){
-                onNavigationToRecipe.invoke(recipe)
+                onRecipeClick.invoke(recipe)
             }
         }
     }

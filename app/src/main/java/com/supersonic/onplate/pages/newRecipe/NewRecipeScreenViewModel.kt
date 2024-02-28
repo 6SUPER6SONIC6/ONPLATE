@@ -26,7 +26,7 @@ class NewRecipeScreenViewModel @Inject constructor(
         recipeUiState = newRecipeUiState.copy()
     }
 
-
+// Ingredients
     private val _ingredients = getIngredientsList().toMutableStateList()
     val ingredients: List<Ingredient>
         get() = _ingredients
@@ -43,7 +43,14 @@ class NewRecipeScreenViewModel @Inject constructor(
 
     private fun getIngredientsList() = List(1) { i -> Ingredient(i) }
 
+    fun updateIngredientValue(id: Int, value: String) {
+        val index = _ingredients.indexOfFirst { it.id == id }
+        if (index != -1) {
+            _ingredients[index] = _ingredients[index].copy(value = value)
+        }
+    }
 
+// Steps
     private val _steps = getStepsList().toMutableStateList()
     val steps: List<Step>
         get() = _steps
@@ -55,11 +62,19 @@ class NewRecipeScreenViewModel @Inject constructor(
     }
 
     fun addEmptyStep() {
-        _steps.add(Step(_steps.last().id + 1))
+        _steps.add(Step(id = _steps.last().id + 1))
     }
 
     private fun getStepsList() = List(1) { i -> Step(i) }
 
+    fun updateStepValue(id: Int, value: String) {
+        val index = _steps.indexOfFirst { it.id == id }
+        if (index != -1) {
+            _steps[index] = _steps[index].copy(value = value)
+        }
+    }
+
+    //Room
     suspend fun saveRecipe() {
         if (recipeUiState.isValid()) {
             recipesRepository.insertRecipe(recipeUiState.toRecipe())

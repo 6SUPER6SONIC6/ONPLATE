@@ -48,6 +48,7 @@ fun TimePickerDialog(
     initialMinute: Int = 0,
     onHourSelected: (Int) -> Unit,
     onMinuteSelected: (Int) -> Unit,
+    onConfirm: () -> Unit = {},
     onCancel: () -> Unit) {
 
     val hoursPagerState = rememberPagerState(
@@ -169,12 +170,13 @@ fun TimePickerDialog(
                     modifier = Modifier.align(Alignment.End)
 
                 ){
-                    TextButton(onClick = {onCancel()}){
+                    TextButton(onClick = { onCancel() }){
                         Text(stringResource(R.string.dialog_button_cancel), style = typography.bodyLarge)
                     }
                     TextButton(onClick = {
                         onHourSelected(hoursPagerState.currentPage)
                         onMinuteSelected(minutesPagerState.currentPage)
+                        onConfirm()
                         onCancel()
                     },
                         enabled = saveButtonEnabled

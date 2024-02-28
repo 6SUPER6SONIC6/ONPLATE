@@ -1,27 +1,32 @@
 package com.supersonic.onplate.navigation
 
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.supersonic.onplate.pages.main.MainScreen
+import com.supersonic.onplate.pages.main.MainScreenDestination
 import com.supersonic.onplate.pages.main.MainScreenViewModel
 import com.supersonic.onplate.pages.newRecipe.NewRecipeScreen
+import com.supersonic.onplate.pages.newRecipe.NewRecipeScreenDestination
 import com.supersonic.onplate.pages.newRecipe.NewRecipeScreenViewModel
-import com.supersonic.onplate.pages.recipe.RecipeScreen
-import com.supersonic.onplate.pages.recipe.RecipeScreenViewModel
+import com.supersonic.onplate.pages.recipeDetails.RecipeDetailsScreen
+import com.supersonic.onplate.pages.recipeDetails.RecipeScreenDestination
+import com.supersonic.onplate.pages.recipeDetails.RecipeScreenViewModel
 import com.supersonic.onplate.pages.splashScreen.SplashScreen
+import com.supersonic.onplate.pages.splashScreen.SplashScreenDestination
 import com.supersonic.onplate.pages.splashScreen.SplashScreenViewModel
 
 @Composable
 fun RootAppNavigation(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
-    startDestination: String = Routes.SplashScreen.route,
+    startDestination: String = MainScreenDestination.route,
 ) {
     NavHost(
         modifier = modifier,
@@ -30,14 +35,13 @@ fun RootAppNavigation(
     ) {
 
         // SplashScreen
-
-        composable(Routes.SplashScreen.route) {
+        composable(route = SplashScreenDestination.route) {
             val viewModel = hiltViewModel<SplashScreenViewModel>()
 
             SplashScreen(
                 viewModel = viewModel,
                 onNavigationNext = {
-                    navController.navigate(route = Routes.MainScreen.route) {
+                    navController.navigate(route = MainScreenDestination.route) {
                         popUpTo(0)
                     }
                 }
@@ -45,46 +49,37 @@ fun RootAppNavigation(
         }
 
         // Main Screen
-
-        composable(Routes.MainScreen.route) {
+        composable(route = MainScreenDestination.route) {
             val viewModel = hiltViewModel<MainScreenViewModel>()
 
             MainScreen(
                 viewModel = viewModel,
-                onNavigationToRecipe = {selectedRecipe ->
-                    navController.navigate("${Routes.RecipeScreen.route}/${selectedRecipe.id}") {
+                onNavigationToRecipe = {
+                    navController.navigate("${RecipeScreenDestination.route}/${it}") {
                     }
                 },
-                onNavigationToAddRecipe = { navController.navigate(route = Routes.AddRecipeScreen.route) },
+                onNavigationToAddRecipe = { navController.navigate(route = NewRecipeScreenDestination.route) },
             )
 
 
         }
 
-        // Recipe Screen
-
-        composable(Routes.RecipeScreen.route + "/{recipeId}") { backStackEntry ->
+        // Recipe Details Screen
+        composable(route = RecipeScreenDestination.routeWithArgs, arguments = listOf(navArgument("recipeId"){
+            type = NavType.IntType
+        })) {
 
             val viewModel = hiltViewModel<RecipeScreenViewModel>()
 
-            val recipeId = backStackEntry.arguments?.getString("recipeId")?.toIntOrNull()
-
-            if (recipeId != null) {
-                val recipe = viewModel.getRecipeById(recipeId)
-
-                RecipeScreen(viewModel = viewModel, onBackClick = {
+                RecipeDetailsScreen(viewModel = viewModel, onBackClick = {
                     navController.navigateUp()
-                }, recipe = recipe)
-            } else {
-                Text("Error: Recipe ID not found =(")
-            }
-
+                })
 
         }
 
-        // Add Recipe Screen
+        // New Recipe Screen
 
-        composable(Routes.AddRecipeScreen.route) {
+        composable(route = NewRecipeScreenDestination.route) {
             val viewModel = hiltViewModel<NewRecipeScreenViewModel>()
 
             NewRecipeScreen(viewModel = viewModel, onBackClick = {

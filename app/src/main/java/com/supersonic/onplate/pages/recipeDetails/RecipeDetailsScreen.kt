@@ -1,4 +1,4 @@
-package com.supersonic.onplate.pages.recipe
+package com.supersonic.onplate.pages.recipeDetails
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -9,6 +9,7 @@ import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -18,6 +19,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.supersonic.onplate.R
 import com.supersonic.onplate.models.Recipe
+import com.supersonic.onplate.models.toRecipe
+import com.supersonic.onplate.navigation.NavigationDestination
 import com.supersonic.onplate.pages.newRecipe.directions.Step
 import com.supersonic.onplate.pages.newRecipe.ingredients.Ingredient
 import com.supersonic.onplate.ui.components.ContentCard
@@ -26,20 +29,27 @@ import com.supersonic.onplate.ui.components.TopBar
 import com.supersonic.onplate.ui.theme.ONPLATETheme
 import com.supersonic.onplate.utils.MockUtils
 
+object RecipeScreenDestination : NavigationDestination {
+    override val route = "recipe_details"
+    override val titleRes = R.string.screenTitle_recipe
+    const val recipeIdArg = "recipeId"
+    val routeWithArgs = "$route/{$recipeIdArg}"
+}
 
 @Composable
-fun RecipeScreen(
+fun RecipeDetailsScreen(
     viewModel: RecipeScreenViewModel,
     onBackClick: () -> Unit,
-    recipe: Recipe
 ) {
+
+    val uiState = viewModel.uiState.collectAsState()
 
     Scaffold(
         topBar = {
             RecipeTopBar(onBackClick)
         },
         content = {
-            RecipeScreenContent(modifier = Modifier.padding(it), recipe = recipe)
+            RecipeScreenContent(modifier = Modifier.padding(it), recipe = uiState.value.toRecipe())
         }
     )
 
@@ -47,7 +57,7 @@ fun RecipeScreen(
 
 @Composable
 private fun RecipeTopBar(onBackClick: () -> Unit) {
-    TopBar(title = stringResource(R.string.screenTitle_recipe), onBackClick = onBackClick)
+    TopBar(title = stringResource(RecipeScreenDestination.titleRes), onBackClick = onBackClick)
 }
 
 @Composable
@@ -57,7 +67,6 @@ private fun RecipeScreenContent(modifier: Modifier, recipe: Recipe) {
         modifier = modifier
             .verticalScroll(rememberScrollState())
     ) {
-        PhotosCard()
         OverviewCard(recipe.title, recipe.description, recipe.cookingTime)
         IngredientsCard(recipe.ingredients)
         DirectionsCard(recipe.directions)
@@ -115,7 +124,8 @@ private fun IngredientsCard(ingredientsList: List<Ingredient>) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             ingredientsList.forEach{ingredient ->
                 Text(text = ingredient.value, modifier = Modifier.padding(2.dp), style = typography.bodyLarge)
@@ -131,15 +141,29 @@ private fun DirectionsCard(directionsList: List<Step>) {
     ContentCard(cardTitle = stringResource(R.string.cardTitle_directions), modifier = Modifier.padding(8.dp)) {
         Column(
             modifier = Modifier
-                .padding(16.dp)
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             directionsList.forEach {step ->
                 val stepCount = directionsList.indexOf(step) + 1
                 Column {
-                    Text(text = "Step $stepCount", modifier = Modifier
-                        .padding(2.dp)
-                        .align(Alignment.CenterHorizontally), style = typography.titleMedium)
-                    Text(text = step.value, modifier = Modifier.padding(2.dp), style = typography.bodyLarge)
+                    Text(
+                        text = "Step $stepCount",
+                        modifier = Modifier
+                            .padding(2.dp)
+                            .fillMaxWidth(),
+                        textAlign = TextAlign.Center,
+                        style = typography.titleMedium
+                    )
+                    Text(
+                        text = step.value,
+                        modifier = Modifier
+                            .padding(2.dp)
+                            .fillMaxWidth(),
+                        textAlign = TextAlign.Center,
+                        style = typography.bodyLarge
+                    )
                 }
             }
         }

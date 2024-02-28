@@ -26,14 +26,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import com.supersonic.onplate.models.Recipe
 import com.supersonic.onplate.ui.theme.ONPLATETheme
 import com.supersonic.onplate.utils.MockUtils
@@ -48,48 +44,57 @@ fun RecipeCard(
         modifier = modifier
             .padding(12.dp)
             .fillMaxWidth()
-            .height(280.dp)
+            .height(160.dp)
             .clickable { onItemClick(recipe) },
         shape = CardDefaults.shape,
         elevation = CardDefaults.cardElevation(8.dp),
         colors = CardDefaults.cardColors(colorScheme.secondaryContainer)
     ) {
 
-        Surface(shape = RoundedCornerShape(8.dp),
-            modifier = modifier
+/*
+        Surface(
+            shape = RoundedCornerShape(8.dp),
+            modifier = Modifier
                 .fillMaxWidth()
-                .height(180.dp),) {
-            Box(modifier = modifier
-                .fillMaxSize()
-                .background(colorScheme.tertiary)){
-                AsyncImage(model = ImageRequest.Builder(LocalContext.current)
-                    .data("")
-                    .crossfade(true)
-                    .build(),
+                .height(180.dp),
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(colorScheme.tertiary)
+            ) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data("")
+                        .crossfade(true)
+                        .build(),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
-                    modifier = modifier.fillMaxSize())
+                    modifier = modifier.fillMaxSize()
+                )
             }
         }
-        Box(modifier = modifier
+*/
+        Box(modifier = Modifier
             .fillMaxSize()
+
             ) {
             Column(
-                modifier = modifier
-                    .padding(top = 4.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                modifier = Modifier
+                    .padding(horizontal = 32.dp, vertical = 16.dp)
+                    .align(Alignment.TopCenter),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(
                     text = recipe.title,
-                    modifier = modifier,
-                    style = typography.titleMedium,
+                    style = typography.titleLarge,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = recipe.description,
-                    modifier = modifier.padding(start = 32.dp, end = 32.dp, bottom = 4.dp, top = 2.dp),
-                    style = typography.bodySmall,
+                    modifier = Modifier.padding(top = 8.dp),
+                    style = typography.bodyMedium,
                     textAlign = TextAlign.Center,
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis
@@ -97,22 +102,22 @@ fun RecipeCard(
             }
 
             Text(
-                text = "${recipe.cookingTime} min",
-                modifier = modifier
+                text = recipe.cookingTime,
+                modifier = Modifier
                     .align(Alignment.BottomStart)
                     .padding(8.dp),
                 style = typography.labelSmall
             )
 
             Icon(Icons.Filled.Delete, contentDescription = null,
-                modifier = modifier
+                modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(4.dp)
                     .size(22.dp)
                     .clickable { })
             
             Icon(Icons.Outlined.FavoriteBorder, contentDescription = null,
-                modifier = modifier
+                modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(4.dp)
                     .size(22.dp)

@@ -20,6 +20,7 @@ import com.supersonic.onplate.ui.components.RecipeTextField
 
 @Composable
 fun IngredientItem(
+    onIngredientValueChange: (Int, String) -> Unit,
     onRemoveIngredient: () -> Unit,
     removeEnabled: Boolean = true,
     id: Int
@@ -28,7 +29,8 @@ fun IngredientItem(
 
     RecipeTextField(
         value = value,
-        onValueChange = {value = it},
+        onValueChange = { value = it
+            onIngredientValueChange(id, it) },
         modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
         singleLine = true,
         trailingIcon = {

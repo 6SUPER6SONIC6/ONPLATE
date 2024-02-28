@@ -44,6 +44,7 @@ import coil.request.ImageRequest
 import com.supersonic.onplate.R
 import com.supersonic.onplate.models.RecipeUiState
 import com.supersonic.onplate.models.isValid
+import com.supersonic.onplate.navigation.NavigationDestination
 import com.supersonic.onplate.pages.newRecipe.directions.StepsList
 import com.supersonic.onplate.pages.newRecipe.ingredients.IngredientsList
 import com.supersonic.onplate.ui.components.ContentCard
@@ -53,6 +54,11 @@ import com.supersonic.onplate.ui.components.TimePickerDialog
 import com.supersonic.onplate.ui.components.TopBar
 import com.supersonic.onplate.ui.theme.ONPLATETheme
 import kotlinx.coroutines.launch
+
+object NewRecipeScreenDestination : NavigationDestination {
+    override val route = "new_recipe"
+    override val titleRes = R.string.screenTitle_NewRecipe
+}
 
 @Composable
 fun NewRecipeScreen(
@@ -77,7 +83,7 @@ fun NewRecipeScreen(
 
 @Composable
 private fun NewRecipeTopBar(onBackClick: () -> Unit) {
-    TopBar(title = stringResource(R.string.screenTitle_NewRecipe), onBackClick = onBackClick)
+    TopBar(title = stringResource(NewRecipeScreenDestination.titleRes), onBackClick = onBackClick)
 }
 
 @Composable
@@ -97,8 +103,8 @@ private fun NewRecipeScreenContent(
     ) {
 
         OverviewCard(recipeUiState = recipeUiState, onValueChange = onRecipeValueChange)
-        IngredientsCard(recipeUiState = recipeUiState, onValueChange = onRecipeValueChange, viewModel = viewModel)
-        DirectionsCard(recipeUiState = recipeUiState, onValueChange = onRecipeValueChange, viewModel = viewModel)
+        IngredientsCard(viewModel = viewModel)
+        DirectionsCard(viewModel = viewModel)
 //        PhotosCard()
         PrimaryButton(text = "Save",
             enabled = recipeUiState.isValid(),
@@ -130,8 +136,6 @@ private fun OverviewCard(
             horizontalAlignment = Alignment.CenterHorizontally) {
 
             // Title TextField
-            var title by rememberSaveable { mutableStateOf("") }
-
             RecipeTextField(
                 modifier = Modifier
                     .padding(top = 8.dp)
@@ -144,8 +148,6 @@ private fun OverviewCard(
             )
 
             // Description TextField
-            var description by rememberSaveable { mutableStateOf("") }
-
             RecipeTextField(
                 modifier = Modifier
                     .padding(top = 8.dp)
@@ -163,25 +165,12 @@ private fun OverviewCard(
             var hour by rememberSaveable { mutableIntStateOf(0) }
             var minute by rememberSaveable { mutableIntStateOf(0) }
 
-            val cookingTimeValue = when {
-                hour == 0 && minute == 0 -> ""
-                hour == 1 && minute == 0 -> "$hour hour"
-                hour == 0 && minute == 1 -> "$minute minute"
-                hour == 1 && minute == 1 -> "$hour hour $minute minute"
-                hour == 1 && minute > 1 -> "$hour hour $minute minutes"
-                hour > 1 && minute == 1 -> "$hour hours $minute minute"
-                hour == 0 -> "$minute minutes"
-                minute == 0 -> "$hour hours"
-
-                else -> {"$hour hours $minute minutes"}
-            }
-
             RecipeTextField(
                 modifier = Modifier
                     .padding(top = 8.dp)
                     .fillMaxWidth(),
-                value = cookingTimeValue,
-                onValueChange = {onValueChange(recipeUiState.copy(cookingTime = cookingTimeValue))},
+                value = recipeUiState.cookingTime,
+                onValueChange = {},
                 label = stringResource(R.string.textField_label_cooking_time),
                 placeholder = stringResource(R.string.textField_placeholder_cooking_time),
                 singleLine = true,
@@ -205,6 +194,20 @@ private fun OverviewCard(
                         initialMinute = minute,
                         onHourSelected = { hour = it },
                         onMinuteSelected = { minute = it },
+                        onConfirm = { onValueChange(
+                            recipeUiState.copy(cookingTime = when {
+                            hour == 0 && minute == 0 -> ""
+                            hour == 1 && minute == 0 -> "$hour hour"
+                            hour == 0 && minute == 1 -> "$minute minute"
+                            hour == 1 && minute == 1 -> "$hour hour $minute minute"
+                            hour == 1 && minute > 1 -> "$hour hour $minute minutes"
+                            hour > 1 && minute == 1 -> "$hour hours $minute minute"
+                            hour == 0 -> "$minute minutes"
+                            minute == 0 -> "$hour hours"
+
+                            else -> {"$hour hours $minute minutes"}
+                        }
+                        ))},
                         onCancel = { openTimePickerDialog = false }
                     )
                 }
@@ -217,8 +220,6 @@ private fun OverviewCard(
 
 @Composable
 private fun IngredientsCard(
-    recipeUiState: RecipeUiState,
-    onValueChange: (RecipeUiState) -> Unit = {},
     viewModel: NewRecipeScreenViewModel,
     ) {
 
@@ -234,6 +235,9 @@ private fun IngredientsCard(
         ) {
             IngredientsList(
                 list = ingredientsList,
+                onIngredientValueChange = {id, value ->
+                    viewModel.updateIngredientValue(id, value)
+                },
                 onRemoveIngredient = {ingredient ->
                     viewModel.removeIngredient(ingredient)
                 },
@@ -256,22 +260,17 @@ private fun IngredientsCard(
             }
 
         }
-
-//        onValueChange(recipeUiState.copy(ingredients = ingredientsList))
-
     }
 }
 
 @Composable
 private fun DirectionsCard(
-    recipeUiState: RecipeUiState,
-    onValueChange: (RecipeUiState) -> Unit = {},
     viewModel: NewRecipeScreenViewModel
 ) {
-
     val stepsList = viewModel.steps
 
     ContentCard(cardTitle = stringResource(id = R.string.cardTitle_directions), modifier = Modifier.padding(8.dp)) {
+
         Column(
             modifier = Modifier
                 .padding(16.dp)
@@ -280,7 +279,10 @@ private fun DirectionsCard(
         ) {
             StepsList(
                 list = stepsList,
-                onRemoveStep ={step ->
+                onStepValueChange = { id, value ->
+                    viewModel.updateStepValue(id, value)
+                },
+                onRemoveStep = { step ->
                     viewModel.removeStep(step)
                 },
                 removeEnabled = stepsList.size > 1
@@ -300,8 +302,6 @@ private fun DirectionsCard(
                 )
             }
         }
-
-//        onValueChange(recipeUiState.copy(directions = stepsList))
 
     }
     
@@ -365,7 +365,7 @@ private fun PhotosCard(
 @Composable
 private fun NewRecipeScreenContentPreview() {
     ONPLATETheme {
-//        NewRecipeScreenContent(Modifier, viewModel = NewRecipeScreenViewModel())
+//        NewRecipeScreenContent(Modifier, viewModel = , onBackClick = {}, onRecipeValueChange = {}, recipeUiState = RecipeUiState())
     }
 }
 
@@ -374,10 +374,7 @@ private fun NewRecipeScreenContentPreview() {
 private fun OverviewCardPreview() {
     ONPLATETheme {
         OverviewCard(
-            recipeUiState = RecipeUiState(
-                title = "Pasta",
-                description = "Pasta",
-            )
+            recipeUiState = RecipeUiState()
         )
     }
 }
