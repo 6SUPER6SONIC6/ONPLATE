@@ -16,7 +16,8 @@ fun StepsList(
                 onStepValueChange = onStepValueChange,
                 onRemoveStep = { onRemoveStep(step) },
                 removeEnabled = removeEnabled,
-                id = step.id)
+                id = step.id,
+                stepValue = step.value)
         }
     }
 }

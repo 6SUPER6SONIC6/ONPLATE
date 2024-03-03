@@ -5,6 +5,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -19,6 +25,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.supersonic.onplate.R
 import com.supersonic.onplate.models.Recipe
+import com.supersonic.onplate.models.RecipeUiState
 import com.supersonic.onplate.models.toRecipe
 import com.supersonic.onplate.navigation.NavigationDestination
 import com.supersonic.onplate.pages.newRecipe.directions.Step
@@ -38,7 +45,8 @@ object RecipeScreenDestination : NavigationDestination {
 
 @Composable
 fun RecipeDetailsScreen(
-    viewModel: RecipeScreenViewModel,
+    viewModel: RecipeDetailsViewModel,
+    navigateToEditRecipe: (Int) -> Unit,
     onBackClick: () -> Unit,
 ) {
 
@@ -46,7 +54,7 @@ fun RecipeDetailsScreen(
 
     Scaffold(
         topBar = {
-            RecipeTopBar(onBackClick)
+            RecipeTopBar(onBackClick = onBackClick, navigateToEditRecipe = navigateToEditRecipe, uiState = uiState.value)
         },
         content = {
             RecipeScreenContent(modifier = Modifier.padding(it), recipe = uiState.value.toRecipe())
@@ -56,8 +64,15 @@ fun RecipeDetailsScreen(
 }
 
 @Composable
-private fun RecipeTopBar(onBackClick: () -> Unit) {
-    TopBar(title = stringResource(RecipeScreenDestination.titleRes), onBackClick = onBackClick)
+private fun RecipeTopBar(onBackClick: () -> Unit, navigateToEditRecipe: (Int) -> Unit, uiState: RecipeUiState) {
+    TopBar(
+        title = stringResource(RecipeScreenDestination.titleRes),
+        onBackClick = onBackClick,
+        actions = {
+            IconButton(onClick = { navigateToEditRecipe(uiState.id) }, colors = IconButtonDefaults.iconButtonColors(contentColor = colorScheme.onPrimary)) {
+                Icon(Icons.Outlined.Edit, contentDescription = null)
+            }
+        })
 }
 
 @Composable

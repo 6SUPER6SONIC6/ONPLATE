@@ -16,7 +16,8 @@ fun IngredientsList(
                 onIngredientValueChange = onIngredientValueChange,
                 onRemoveIngredient = { onRemoveIngredient(ingredient) },
                 removeEnabled = removeEnabled,
-                id = ingredient.id
+                id = ingredient.id,
+                ingredientValue = ingredient.value
             )
         }
     }

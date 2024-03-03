@@ -20,12 +20,13 @@ import com.supersonic.onplate.ui.components.RecipeTextField
 
 @Composable
 fun IngredientItem(
+    ingredientValue: String,
     onIngredientValueChange: (Int, String) -> Unit,
     onRemoveIngredient: () -> Unit,
     removeEnabled: Boolean = true,
     id: Int
 ) {
-    var value by remember { mutableStateOf(id.toString()) }
+    var value by remember { mutableStateOf(ingredientValue) }
 
     RecipeTextField(
         value = value,

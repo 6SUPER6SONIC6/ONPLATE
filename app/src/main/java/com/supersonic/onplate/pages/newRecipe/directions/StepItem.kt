@@ -19,12 +19,13 @@ import com.supersonic.onplate.ui.components.RecipeTextField
 
 @Composable
 fun StepItem(
+    stepValue: String,
     onStepValueChange: (Int, String) -> Unit,
     onRemoveStep: () -> Unit,
     removeEnabled: Boolean = true,
     id: Int
 ) {
-    var value by remember { mutableStateOf("") }
+    var value by remember { mutableStateOf(stepValue) }
 
     RecipeTextField(
         value = value,

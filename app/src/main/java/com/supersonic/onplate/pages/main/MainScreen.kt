@@ -77,7 +77,8 @@ fun MainScreen(
 private fun MainTopBar() {
     val context = LocalContext.current
 
-    TopBar(title = stringResource(MainScreenDestination.titleRes),
+    TopBar(
+        title = stringResource(MainScreenDestination.titleRes),
         isEnableBackIcon = false,
         actions = {
             IconButton(onClick = {

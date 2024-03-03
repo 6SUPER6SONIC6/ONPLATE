@@ -43,7 +43,13 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.supersonic.onplate.R
 import com.supersonic.onplate.models.RecipeUiState
+import com.supersonic.onplate.models.addEmptyIngredient
+import com.supersonic.onplate.models.addEmptyStep
 import com.supersonic.onplate.models.isValid
+import com.supersonic.onplate.models.removeIngredient
+import com.supersonic.onplate.models.removeStep
+import com.supersonic.onplate.models.updateIngredientValue
+import com.supersonic.onplate.models.updateStepValue
 import com.supersonic.onplate.navigation.NavigationDestination
 import com.supersonic.onplate.pages.newRecipe.directions.StepsList
 import com.supersonic.onplate.pages.newRecipe.ingredients.IngredientsList
@@ -62,9 +68,11 @@ object NewRecipeScreenDestination : NavigationDestination {
 
 @Composable
 fun NewRecipeScreen(
-    viewModel: NewRecipeScreenViewModel,
+    viewModel: NewRecipeViewModel,
     onBackClick: () -> Unit
 ) {
+    val coroutineScope = rememberCoroutineScope()
+
     Scaffold(
         topBar = {
                  NewRecipeTopBar(onBackClick)
@@ -72,10 +80,15 @@ fun NewRecipeScreen(
         content = {
                   NewRecipeScreenContent(
                       modifier = Modifier.padding(it),
-                      onBackClick = onBackClick,
                       recipeUiState = viewModel.recipeUiState,
                       onRecipeValueChange = viewModel::updateUiState,
-                      viewModel = viewModel)
+                      onSaveClick = {
+                          coroutineScope.launch {
+                              viewModel.saveRecipe()
+                              onBackClick()
+                          }
+                      }
+                  )
         },
     )
 }
@@ -87,35 +100,25 @@ private fun NewRecipeTopBar(onBackClick: () -> Unit) {
 }
 
 @Composable
-private fun NewRecipeScreenContent(
+fun NewRecipeScreenContent(
     modifier: Modifier,
     recipeUiState: RecipeUiState,
     onRecipeValueChange: (RecipeUiState) -> Unit,
-    viewModel: NewRecipeScreenViewModel,
-    onBackClick: () -> Unit
+    onSaveClick: () -> Unit,
 ) {
-
-    val coroutineScope = rememberCoroutineScope()
-
     Column(
         modifier = modifier
             .verticalScroll(rememberScrollState())
     ) {
 
         OverviewCard(recipeUiState = recipeUiState, onValueChange = onRecipeValueChange)
-        IngredientsCard(viewModel = viewModel)
-        DirectionsCard(viewModel = viewModel)
+        IngredientsCard(recipeUiState = recipeUiState)
+        DirectionsCard(recipeUiState = recipeUiState)
 //        PhotosCard()
         PrimaryButton(text = "Save",
             enabled = recipeUiState.isValid(),
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 16.dp),
-            onClick = {
-                onRecipeValueChange(recipeUiState.copy(ingredients = viewModel.ingredients, directions = viewModel.steps))
-                coroutineScope.launch {
-                    viewModel.saveRecipe()
-                    onBackClick()
-                }
-            }
+            onClick = onSaveClick
         )
 
     }
@@ -220,12 +223,12 @@ private fun OverviewCard(
 
 @Composable
 private fun IngredientsCard(
-    viewModel: NewRecipeScreenViewModel,
+    recipeUiState: RecipeUiState
     ) {
 
     ContentCard(cardTitle = stringResource(id = R.string.cardTitle_ingredients), modifier = Modifier.padding(8.dp)) {
 
-        val ingredientsList = viewModel.ingredients
+        val ingredientsList = recipeUiState.ingredients
 
         Column(
             modifier = Modifier
@@ -236,16 +239,16 @@ private fun IngredientsCard(
             IngredientsList(
                 list = ingredientsList,
                 onIngredientValueChange = {id, value ->
-                    viewModel.updateIngredientValue(id, value)
+                    recipeUiState.updateIngredientValue(id, value)
                 },
                 onRemoveIngredient = {ingredient ->
-                    viewModel.removeIngredient(ingredient)
+                    recipeUiState.removeIngredient(ingredient)
                 },
                 removeEnabled = ingredientsList.size > 1
                 )
 
             IconButton(
-                onClick = { viewModel.addEmptyIngredient() },
+                onClick = { recipeUiState.addEmptyIngredient() },
                 colors = IconButtonDefaults.iconButtonColors(
                     contentColor = colorScheme.onSecondaryContainer
                 ),
@@ -265,9 +268,9 @@ private fun IngredientsCard(
 
 @Composable
 private fun DirectionsCard(
-    viewModel: NewRecipeScreenViewModel
+    recipeUiState: RecipeUiState,
 ) {
-    val stepsList = viewModel.steps
+    val stepsList = recipeUiState.directions
 
     ContentCard(cardTitle = stringResource(id = R.string.cardTitle_directions), modifier = Modifier.padding(8.dp)) {
 
@@ -280,16 +283,16 @@ private fun DirectionsCard(
             StepsList(
                 list = stepsList,
                 onStepValueChange = { id, value ->
-                    viewModel.updateStepValue(id, value)
+                    recipeUiState.updateStepValue(id, value)
                 },
                 onRemoveStep = { step ->
-                    viewModel.removeStep(step)
+                    recipeUiState.removeStep(step)
                 },
                 removeEnabled = stepsList.size > 1
             )
 
             IconButton(
-                onClick = { viewModel.addEmptyStep() },
+                onClick = { recipeUiState.addEmptyStep() },
                 colors = IconButtonDefaults.iconButtonColors(
                     contentColor = colorScheme.onSecondaryContainer
                 ),

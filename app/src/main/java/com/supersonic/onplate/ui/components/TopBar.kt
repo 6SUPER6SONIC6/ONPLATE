@@ -28,8 +28,8 @@ fun TopBar(
     isEnableBackIcon: Boolean = true,
     actions: @Composable RowScope.() -> Unit = {}
 ) {
-    CenterAlignedTopAppBar(title = {
-        Text(
+    CenterAlignedTopAppBar(
+        title = { Text(
             text = title,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,

@@ -9,15 +9,18 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.supersonic.onplate.pages.editRecipe.EditRecipeScreen
+import com.supersonic.onplate.pages.editRecipe.EditRecipeScreenDestination
+import com.supersonic.onplate.pages.editRecipe.EditRecipeViewModel
 import com.supersonic.onplate.pages.main.MainScreen
 import com.supersonic.onplate.pages.main.MainScreenDestination
 import com.supersonic.onplate.pages.main.MainScreenViewModel
 import com.supersonic.onplate.pages.newRecipe.NewRecipeScreen
 import com.supersonic.onplate.pages.newRecipe.NewRecipeScreenDestination
-import com.supersonic.onplate.pages.newRecipe.NewRecipeScreenViewModel
+import com.supersonic.onplate.pages.newRecipe.NewRecipeViewModel
 import com.supersonic.onplate.pages.recipeDetails.RecipeDetailsScreen
+import com.supersonic.onplate.pages.recipeDetails.RecipeDetailsViewModel
 import com.supersonic.onplate.pages.recipeDetails.RecipeScreenDestination
-import com.supersonic.onplate.pages.recipeDetails.RecipeScreenViewModel
 import com.supersonic.onplate.pages.splashScreen.SplashScreen
 import com.supersonic.onplate.pages.splashScreen.SplashScreenDestination
 import com.supersonic.onplate.pages.splashScreen.SplashScreenViewModel
@@ -69,23 +72,35 @@ fun RootAppNavigation(
             type = NavType.IntType
         })) {
 
-            val viewModel = hiltViewModel<RecipeScreenViewModel>()
+            val viewModel = hiltViewModel<RecipeDetailsViewModel>()
 
-                RecipeDetailsScreen(viewModel = viewModel, onBackClick = {
-                    navController.navigateUp()
-                })
-
+                RecipeDetailsScreen(
+                    viewModel = viewModel,
+                    onBackClick = { navController.navigateUp() },
+                    navigateToEditRecipe = { navController.navigate("${EditRecipeScreenDestination.route}/$it") })
         }
 
         // New Recipe Screen
 
         composable(route = NewRecipeScreenDestination.route) {
-            val viewModel = hiltViewModel<NewRecipeScreenViewModel>()
+            val viewModel = hiltViewModel<NewRecipeViewModel>()
 
             NewRecipeScreen(viewModel = viewModel, onBackClick = {
                 navController.navigateUp()
             })
 
+        }
+
+        composable(route = EditRecipeScreenDestination.routeWithArgs, arguments = listOf(navArgument(EditRecipeScreenDestination.recipeIdArg){
+            type = NavType.IntType }
+        )
+        ) {
+            val viewModel = hiltViewModel<EditRecipeViewModel>()
+
+            EditRecipeScreen(
+                viewModel = viewModel,
+                onBackClick = { navController.navigate(MainScreenDestination.route) }
+            )
         }
 
     }
