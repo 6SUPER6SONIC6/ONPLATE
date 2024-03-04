@@ -102,7 +102,7 @@ fun RecipeCard(
             }
 
             Text(
-                text = recipe.cookingTime,
+                text = recipe.cookingTimeString,
                 modifier = Modifier
                     .align(Alignment.BottomStart)
                     .padding(8.dp),

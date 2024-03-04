@@ -85,8 +85,8 @@ fun NewRecipeScreen(
                       onSaveClick = {
                           coroutineScope.launch {
                               viewModel.saveRecipe()
-                              onBackClick()
                           }
+                          onBackClick()
                       }
                   )
         },
@@ -165,6 +165,7 @@ private fun OverviewCard(
 
             // Cooking Time TextField
             var openTimePickerDialog by rememberSaveable { mutableStateOf(false) }
+
             var hour by rememberSaveable { mutableIntStateOf(0) }
             var minute by rememberSaveable { mutableIntStateOf(0) }
 
@@ -172,7 +173,7 @@ private fun OverviewCard(
                 modifier = Modifier
                     .padding(top = 8.dp)
                     .fillMaxWidth(),
-                value = recipeUiState.cookingTime,
+                value = recipeUiState.cookingTimeString,
                 onValueChange = {},
                 label = stringResource(R.string.textField_label_cooking_time),
                 placeholder = stringResource(R.string.textField_placeholder_cooking_time),
@@ -193,23 +194,27 @@ private fun OverviewCard(
             when {
                 openTimePickerDialog -> {
                     TimePickerDialog(
-                        initialHour = hour,
-                        initialMinute = minute,
+                        initialHour = recipeUiState.cookingTimeHour,
+                        initialMinute = recipeUiState.cookingTimeMinute,
                         onHourSelected = { hour = it },
                         onMinuteSelected = { minute = it },
-                        onConfirm = { onValueChange(
-                            recipeUiState.copy(cookingTime = when {
-                            hour == 0 && minute == 0 -> ""
-                            hour == 1 && minute == 0 -> "$hour hour"
-                            hour == 0 && minute == 1 -> "$minute minute"
-                            hour == 1 && minute == 1 -> "$hour hour $minute minute"
-                            hour == 1 && minute > 1 -> "$hour hour $minute minutes"
-                            hour > 1 && minute == 1 -> "$hour hours $minute minute"
-                            hour == 0 -> "$minute minutes"
-                            minute == 0 -> "$hour hours"
+                        onConfirm = {
+                            onValueChange(
+                            recipeUiState.copy(
+                                cookingTimeHour = hour,
+                                cookingTimeMinute = minute,
+                                cookingTimeString = when {
+                                    hour == 0 && minute == 0 -> ""
+                                    hour == 1 && minute == 0 -> "$hour hour"
+                                    hour == 0 && minute == 1 -> "$minute minute"
+                                    hour == 1 && minute == 1 -> "$hour hour $minute minute"
+                                    hour == 1 && minute > 1 -> "$hour hour $minute minutes"
+                                    hour > 1 && minute == 1 -> "$hour hours $minute minute"
+                                    hour == 0 -> "$minute minutes"
+                                    minute == 0 -> "$hour hours"
 
-                            else -> {"$hour hours $minute minutes"}
-                        }
+                                    else -> {"$hour hours $minute minutes"}
+                                }
                         ))},
                         onCancel = { openTimePickerDialog = false }
                     )

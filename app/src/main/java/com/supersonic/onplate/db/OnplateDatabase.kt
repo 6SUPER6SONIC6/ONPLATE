@@ -8,7 +8,7 @@ import androidx.room.TypeConverters
 import com.supersonic.onplate.models.Recipe
 import com.supersonic.onplate.utils.Converters
 
-@Database(entities = [Recipe::class], version = 1, exportSchema = false)
+@Database(entities = [Recipe::class], version = 3, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class OnplateDatabase : RoomDatabase(){
     abstract fun recipeDao(): RecipeDao
@@ -20,6 +20,7 @@ abstract class OnplateDatabase : RoomDatabase(){
         fun getDatabase(context: Context): OnplateDatabase {
             return Instance ?: synchronized(this) {
                 Room.databaseBuilder(context, OnplateDatabase::class.java, "recipe_database")
+                    .fallbackToDestructiveMigration()
                     .build()
                     .also { Instance = it }
             }

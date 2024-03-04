@@ -11,7 +11,9 @@ data class RecipeUiState(
     val description: String = "",
     val ingredients: MutableList<Ingredient> = mutableStateListOf(),
     val directions: MutableList<Step> = mutableStateListOf(),
-    val cookingTime: String = ""
+    val cookingTimeHour: Int = 0,
+    val cookingTimeMinute: Int = 0,
+    var cookingTimeString: String = ""
 )
 
 fun RecipeUiState.updateIngredientValue(id: Int, value: String) {
@@ -30,7 +32,7 @@ fun RecipeUiState.removeIngredient(item: Ingredient) {
 fun RecipeUiState.addEmptyIngredient() {
 
     if (ingredients.isEmpty()){
-        ingredients.add(Ingredient(ingredients.size))
+        ingredients.add(Ingredient())
     } else {
         ingredients.add(Ingredient(ingredients.last().id + 1))
     }
@@ -52,7 +54,7 @@ fun RecipeUiState.removeStep(item: Step) {
 fun RecipeUiState.addEmptyStep() {
 
     if (directions.isEmpty()) {
-        directions.add(Step(0))
+        directions.add(Step())
     } else {
         directions.add(Step(id = directions.last().id + 1))
     }
@@ -64,7 +66,9 @@ fun RecipeUiState.toRecipe(): Recipe = Recipe(
     description = description,
     ingredients = ingredients,
     directions = directions,
-    cookingTime = cookingTime
+    cookingTimeHour = cookingTimeHour,
+    cookingTimeMinute = cookingTimeMinute,
+    cookingTimeString = cookingTimeString
 )
 fun Recipe.toRecipeUiState() : RecipeUiState = RecipeUiState(
     id = id,
@@ -72,7 +76,9 @@ fun Recipe.toRecipeUiState() : RecipeUiState = RecipeUiState(
     description = description,
     ingredients = ingredients.toMutableStateList(),
     directions = directions.toMutableStateList(),
-    cookingTime = cookingTime
+    cookingTimeHour = cookingTimeHour,
+    cookingTimeMinute = cookingTimeMinute,
+    cookingTimeString = cookingTimeString
 )
 
 fun RecipeUiState.isValid() : Boolean {

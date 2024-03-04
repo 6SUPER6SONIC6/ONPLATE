@@ -57,10 +57,7 @@ fun RootAppNavigation(
 
             MainScreen(
                 viewModel = viewModel,
-                onNavigationToRecipe = {
-                    navController.navigate("${RecipeScreenDestination.route}/${it}") {
-                    }
-                },
+                onNavigationToRecipe = { navController.navigate("${RecipeScreenDestination.route}/${it}") },
                 onNavigationToAddRecipe = { navController.navigate(route = NewRecipeScreenDestination.route) },
             )
 
@@ -74,23 +71,23 @@ fun RootAppNavigation(
 
             val viewModel = hiltViewModel<RecipeDetailsViewModel>()
 
-                RecipeDetailsScreen(
-                    viewModel = viewModel,
-                    onBackClick = { navController.navigateUp() },
-                    navigateToEditRecipe = { navController.navigate("${EditRecipeScreenDestination.route}/$it") })
+            RecipeDetailsScreen(
+                viewModel = viewModel,
+                onBackClick = { navController.navigateUp() },
+                navigateToEditRecipe = { navController.navigate("${EditRecipeScreenDestination.route}/$it") })
         }
 
         // New Recipe Screen
-
         composable(route = NewRecipeScreenDestination.route) {
             val viewModel = hiltViewModel<NewRecipeViewModel>()
 
-            NewRecipeScreen(viewModel = viewModel, onBackClick = {
-                navController.navigateUp()
-            })
+            NewRecipeScreen(
+                viewModel = viewModel,
+                onBackClick = { navController.navigateUp() })
 
         }
 
+        // Edit Recipe Screen
         composable(route = EditRecipeScreenDestination.routeWithArgs, arguments = listOf(navArgument(EditRecipeScreenDestination.recipeIdArg){
             type = NavType.IntType }
         )
@@ -99,7 +96,7 @@ fun RootAppNavigation(
 
             EditRecipeScreen(
                 viewModel = viewModel,
-                onBackClick = { navController.navigate(MainScreenDestination.route) }
+                onBackClick = { navController.navigateUp() }
             )
         }
 

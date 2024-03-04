@@ -82,7 +82,7 @@ private fun RecipeScreenContent(modifier: Modifier, recipe: Recipe) {
         modifier = modifier
             .verticalScroll(rememberScrollState())
     ) {
-        OverviewCard(recipe.title, recipe.description, recipe.cookingTime)
+        OverviewCard(recipe.title, recipe.description, recipe.cookingTimeString)
         IngredientsCard(recipe.ingredients)
         DirectionsCard(recipe.directions)
     }
