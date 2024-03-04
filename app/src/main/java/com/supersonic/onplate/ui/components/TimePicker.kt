@@ -88,10 +88,12 @@ fun TimePickerDialog(
                 .alpha(0.95f)
         ) {
 
-            Column(modifier = Modifier
+            Column(
+                modifier = Modifier
                 .fillMaxWidth()
                 .padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally) {
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 Text(
                     text = stringResource(R.string.textField_label_cooking_time),
                     style = typography.titleLarge,

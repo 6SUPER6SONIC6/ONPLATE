@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.supersonic.onplate.db.RecipesRepository
 import com.supersonic.onplate.models.RecipeUiState
+import com.supersonic.onplate.models.toRecipe
 import com.supersonic.onplate.models.toRecipeUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -32,6 +33,10 @@ class RecipeDetailsViewModel @Inject constructor(
                 started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS),
                 initialValue = RecipeUiState()
             )
+
+    suspend fun deleteRecipe() {
+        recipesRepository.deleteRecipe(uiState.value.toRecipe())
+    }
 
     companion object {
         private const val TIMEOUT_MILLIS = 5_000L
