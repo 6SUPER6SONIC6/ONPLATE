@@ -31,6 +31,7 @@ fun ContentDialog(
     title: String,
     onConfirm: () -> Unit,
     onCancel: () -> Unit,
+    confirmButtonEnabled: Boolean = true,
     icon: @Composable (() -> Unit)? = null,
     body: @Composable () -> Unit
 ) {
@@ -78,6 +79,7 @@ fun ContentDialog(
                     }
                     TextButton(
                         onClick = onConfirm,
+                        enabled = confirmButtonEnabled
                     ) {
                         Text(
                             stringResource(R.string.dialog_button_confirm),
@@ -95,7 +97,7 @@ fun ContentDialog(
     }
 }
 
-@Preview()
+@Preview
 @Composable
 private fun ContentDialogPreview() {
     ONPLATETheme {
@@ -107,7 +109,7 @@ private fun ContentDialogPreview() {
             )
         }
         ) {
-            Text(text = "Do you wanna delete the recipe?",)
+            Text(text = "Do you wanna delete the recipe?")
         }
     }
 }

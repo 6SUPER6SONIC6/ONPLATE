@@ -51,12 +51,13 @@ import com.supersonic.onplate.models.removeStep
 import com.supersonic.onplate.models.updateIngredientValue
 import com.supersonic.onplate.models.updateStepValue
 import com.supersonic.onplate.navigation.NavigationDestination
+import com.supersonic.onplate.pages.newRecipe.directions.Step
 import com.supersonic.onplate.pages.newRecipe.directions.StepsList
+import com.supersonic.onplate.pages.newRecipe.ingredients.Ingredient
 import com.supersonic.onplate.pages.newRecipe.ingredients.IngredientsList
 import com.supersonic.onplate.ui.components.ContentCard
 import com.supersonic.onplate.ui.components.PrimaryButton
 import com.supersonic.onplate.ui.components.RecipeTextField
-import com.supersonic.onplate.ui.components.TimePickerDialog
 import com.supersonic.onplate.ui.components.TopBar
 import com.supersonic.onplate.ui.theme.ONPLATETheme
 import kotlinx.coroutines.launch
@@ -373,7 +374,11 @@ private fun PhotosCard(
 @Composable
 private fun NewRecipeScreenContentPreview() {
     ONPLATETheme {
-//        NewRecipeScreenContent(Modifier, viewModel = , onBackClick = {}, onRecipeValueChange = {}, recipeUiState = RecipeUiState())
+        NewRecipeScreenContent(modifier = Modifier, recipeUiState = RecipeUiState(
+            ingredients = mutableListOf(Ingredient()), directions = mutableListOf(Step())
+        ), onRecipeValueChange = {}) {
+
+        }
     }
 }
 

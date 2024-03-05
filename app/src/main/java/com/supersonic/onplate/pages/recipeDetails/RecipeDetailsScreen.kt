@@ -137,16 +137,9 @@ private fun PhotosCard(photosList: List<String> = emptyList()) {
 private fun OverviewCard(title: String, description: String, cookingTime: String) {
 
     ContentCard(cardTitle = stringResource(R.string.cardTitle_overview), modifier = Modifier.padding(8.dp)){
-        Text(
-            text = cookingTime,
-            style = typography.labelSmall,
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(8.dp)
-        )
+
         Column(
-            modifier =
-            Modifier
+            modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -154,15 +147,26 @@ private fun OverviewCard(title: String, description: String, cookingTime: String
             Text(
                 text = title,
                 style = typography.titleLarge,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                textAlign = TextAlign.Center,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
             )
             Text(
                 text = description,
-                modifier = Modifier.padding(top = 2.dp),
+                modifier = Modifier.padding(top = 8.dp),
                 style = typography.bodyLarge,
                 textAlign = TextAlign.Center,
                 overflow = TextOverflow.Ellipsis
+            )
+
+            Text(
+                text = cookingTime,
+                style = typography.labelMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier
+                    .align(Alignment.Start)
+                    .padding(top = 8.dp)
             )
         }
     }
@@ -175,11 +179,15 @@ private fun IngredientsCard(ingredientsList: List<Ingredient>) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(horizontal = 8.dp, vertical = 16.dp),
+            horizontalAlignment = Alignment.Start
         ) {
             ingredientsList.forEach{ingredient ->
-                Text(text = ingredient.value, modifier = Modifier.padding(2.dp), style = typography.bodyLarge)
+                Text(
+                    text = ingredient.value,
+                    modifier = Modifier.padding(4.dp),
+                    style = typography.bodyLarge
+                )
             }
         }
     }
@@ -193,25 +201,26 @@ private fun DirectionsCard(directionsList: List<Step>) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(horizontal = 8.dp, vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             directionsList.forEach {step ->
                 val stepCount = directionsList.indexOf(step) + 1
-                Column {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.padding(4.dp)
+                ) {
                     Text(
                         text = "Step $stepCount",
                         modifier = Modifier
-                            .padding(2.dp)
-                            .fillMaxWidth(),
+                            .padding(2.dp),
                         textAlign = TextAlign.Center,
-                        style = typography.titleMedium
+                        style = typography.titleLarge
                     )
                     Text(
                         text = step.value,
                         modifier = Modifier
-                            .padding(2.dp)
-                            .fillMaxWidth(),
+                            .padding(2.dp),
                         textAlign = TextAlign.Center,
                         style = typography.bodyLarge
                     )

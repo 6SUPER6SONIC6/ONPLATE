@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -44,7 +43,7 @@ fun RecipeCard(
         modifier = modifier
             .padding(12.dp)
             .fillMaxWidth()
-            .height(160.dp)
+            .height(180.dp)
             .clickable { onItemClick(recipe) },
         shape = CardDefaults.shape,
         elevation = CardDefaults.cardElevation(8.dp),
@@ -75,9 +74,10 @@ fun RecipeCard(
             }
         }
 */
-        Box(modifier = Modifier
+        Box(
+            contentAlignment = Alignment.TopCenter,
+            modifier = Modifier
             .fillMaxSize()
-
             ) {
             Column(
                 modifier = Modifier
@@ -88,38 +88,39 @@ fun RecipeCard(
                 Text(
                     text = recipe.title,
                     style = typography.titleLarge,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    textAlign = TextAlign.Center,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
                 )
                 Text(
                     text = recipe.description,
-                    modifier = Modifier.padding(top = 8.dp),
                     style = typography.bodyMedium,
                     textAlign = TextAlign.Center,
                     maxLines = 3,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(top = 8.dp)
                 )
+
+
             }
 
             Text(
                 text = recipe.cookingTimeString,
                 modifier = Modifier
                     .align(Alignment.BottomStart)
-                    .padding(8.dp),
-                style = typography.labelSmall
+                    .padding(8.dp)
+                ,
+                style = typography.labelSmall,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
 
-            Icon(Icons.Filled.Delete, contentDescription = null,
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(4.dp)
-                    .size(22.dp)
-                    .clickable { })
+
             
             Icon(Icons.Outlined.FavoriteBorder, contentDescription = null,
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(4.dp)
+                    .padding(8.dp)
                     .size(22.dp)
                     .clickable { })
         }
