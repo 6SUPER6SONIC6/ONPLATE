@@ -115,7 +115,7 @@ fun NewRecipeScreenContent(
         OverviewCard(recipeUiState = recipeUiState, onValueChange = onRecipeValueChange)
         IngredientsCard(recipeUiState = recipeUiState)
         DirectionsCard(recipeUiState = recipeUiState)
-//        PhotosCard()
+        PhotosCard()
         PrimaryButton(text = "Save",
             enabled = recipeUiState.isValid(),
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 16.dp),
@@ -342,7 +342,8 @@ private fun PhotosCard(
                                 .crossfade(true)
                                 .build(),
                             contentScale = ContentScale.Crop,
-                            contentDescription = null)
+                            contentDescription = null
+                        )
                     }
                 }
 

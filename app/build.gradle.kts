@@ -102,9 +102,10 @@ dependencies {
     implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
     kapt("com.google.dagger:hilt-compiler:2.50")
 
-
-
-
-
+    // CameraX
+    val camerax_version = "1.3.2"
+    implementation ("androidx.camera:camera-camera2:$camerax_version")
+    implementation ("androidx.camera:camera-lifecycle:$camerax_version")
+    implementation ("androidx.camera:camera-view:1.3.2")
 
 }
