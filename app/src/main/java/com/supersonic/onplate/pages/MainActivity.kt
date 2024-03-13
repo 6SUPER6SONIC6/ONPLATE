@@ -9,6 +9,17 @@ import dagger.hilt.android.AndroidEntryPoint
 
  @AndroidEntryPoint
  class MainActivity : ComponentActivity() {
+
+//     private val requestPermissionLauncher = registerForActivityResult(
+//         ActivityResultContracts.RequestPermission()
+//     ) { isGranted ->
+//         if (isGranted){
+//             Log.i("camera", "Permission granted")
+//         } else {
+//             Log.i("camera", "Permission denied")
+//         }
+//     }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -17,4 +28,6 @@ import dagger.hilt.android.AndroidEntryPoint
             }
         }
     }
+
+
 }

@@ -15,6 +15,8 @@ import com.supersonic.onplate.pages.editRecipe.EditRecipeViewModel
 import com.supersonic.onplate.pages.main.MainScreen
 import com.supersonic.onplate.pages.main.MainScreenDestination
 import com.supersonic.onplate.pages.main.MainScreenViewModel
+import com.supersonic.onplate.pages.newRecipe.CameraScreenDestination
+import com.supersonic.onplate.pages.newRecipe.CameraView
 import com.supersonic.onplate.pages.newRecipe.NewRecipeScreen
 import com.supersonic.onplate.pages.newRecipe.NewRecipeScreenDestination
 import com.supersonic.onplate.pages.newRecipe.NewRecipeViewModel
@@ -83,8 +85,13 @@ fun RootAppNavigation(
 
             NewRecipeScreen(
                 viewModel = viewModel,
-                onBackClick = { navController.navigateUp() })
+                onBackClick = { navController.navigateUp() },
+                onNavigateToCamera = {navController.navigate(CameraScreenDestination.route)})
 
+        }
+
+        composable(route = CameraScreenDestination.route) {
+            CameraView()
         }
 
         // Edit Recipe Screen

@@ -1,6 +1,11 @@
 package com.supersonic.onplate.pages.newRecipe
 
+import android.content.pm.PackageManager
+import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Box
@@ -39,6 +44,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.supersonic.onplate.R
@@ -70,7 +76,8 @@ object NewRecipeScreenDestination : NavigationDestination {
 @Composable
 fun NewRecipeScreen(
     viewModel: NewRecipeViewModel,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onNavigateToCamera: () -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
 
@@ -88,7 +95,8 @@ fun NewRecipeScreen(
                               viewModel.saveRecipe()
                           }
                           onBackClick()
-                      }
+                      },
+                      onNavigateToCamera = onNavigateToCamera
                   )
         },
     )
@@ -106,6 +114,7 @@ fun NewRecipeScreenContent(
     recipeUiState: RecipeUiState,
     onRecipeValueChange: (RecipeUiState) -> Unit,
     onSaveClick: () -> Unit,
+    onNavigateToCamera: () -> Unit
 ) {
     Column(
         modifier = modifier
@@ -115,7 +124,7 @@ fun NewRecipeScreenContent(
         OverviewCard(recipeUiState = recipeUiState, onValueChange = onRecipeValueChange)
         IngredientsCard(recipeUiState = recipeUiState)
         DirectionsCard(recipeUiState = recipeUiState)
-        PhotosCard()
+        PhotosCard(onNavigateToCamera = onNavigateToCamera)
         PrimaryButton(text = "Save",
             enabled = recipeUiState.isValid(),
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 16.dp),
@@ -317,13 +326,27 @@ private fun DirectionsCard(
 }
 
 
-
 @Composable
 private fun PhotosCard(
-    photos: List<String> = emptyList()
+    photos: List<String> = emptyList(),
+    onNavigateToCamera: () -> Unit
 ) {
 
+    var openCamera by remember { mutableStateOf(false) }
+
         ContentCard(cardTitle = stringResource(R.string.cardTitle_photos), modifier = Modifier.padding(8.dp)) {
+
+
+            val requestPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {isGranted ->
+                if (isGranted){
+                    Log.i("camera", "Permission granted")
+                } else {
+                    Log.i("camera", "Permission denied")
+                }
+            }
+
+            val context = LocalContext.current
+
 
             LazyRow(
                 contentPadding = PaddingValues(vertical = 16.dp, horizontal = 8.dp)
@@ -360,15 +383,30 @@ private fun PhotosCard(
                             Column(
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                Icon(Icons.Filled.Add, contentDescription = null)
+                                Icon(
+                                    Icons.Filled.Add,
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .clickable {
+                                            if (ContextCompat.checkSelfPermission(
+                                                    context, android.Manifest.permission.CAMERA
+                                            ) == PackageManager.PERMISSION_GRANTED
+                                                ) {
+                                    Log.i("camera", "Permission previously granted")
+                                    onNavigateToCamera()
+                                } else {
+                                    requestPermissionLauncher.launch(android.Manifest.permission.CAMERA)
+                                }
+                                }
+                                )
                                 Text(text = "Add Photo")
                             }
                         }
                     }
                 }
             }
-
         }
+
 }
 
 @Preview(showSystemUi = true)
@@ -377,9 +415,7 @@ private fun NewRecipeScreenContentPreview() {
     ONPLATETheme {
         NewRecipeScreenContent(modifier = Modifier, recipeUiState = RecipeUiState(
             ingredients = mutableListOf(Ingredient()), directions = mutableListOf(Step())
-        ), onRecipeValueChange = {}) {
-
-        }
+        ), onRecipeValueChange = {}, onSaveClick = {}, onNavigateToCamera = {})
     }
 }
 
@@ -405,6 +441,6 @@ private fun IngredientsCardPreview() {
 @Composable
 private fun PhotosCardPreview() {
     ONPLATETheme {
-        PhotosCard()
+        PhotosCard(onNavigateToCamera = {})
     }
 }

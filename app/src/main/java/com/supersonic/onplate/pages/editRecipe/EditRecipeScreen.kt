@@ -38,7 +38,8 @@ fun EditRecipeScreen(
                     viewModel.updateRecipe()
                     onBackClick()
                 }
-            }
+            },
+            onNavigateToCamera = {}
         )
     }
 
