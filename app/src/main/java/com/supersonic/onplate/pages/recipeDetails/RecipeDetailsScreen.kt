@@ -1,5 +1,6 @@
 package com.supersonic.onplate.pages.recipeDetails
 
+import android.net.Uri
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -118,6 +119,7 @@ private fun RecipeScreenContent(modifier: Modifier, recipe: Recipe) {
         modifier = modifier
             .verticalScroll(rememberScrollState())
     ) {
+        PhotosCard(recipe.photos)
         OverviewCard(recipe.title, recipe.description, recipe.cookingTimeString)
         IngredientsCard(recipe.ingredients)
         DirectionsCard(recipe.directions)
@@ -125,7 +127,7 @@ private fun RecipeScreenContent(modifier: Modifier, recipe: Recipe) {
 }
 
 @Composable
-private fun PhotosCard(photosList: List<String> = emptyList()) {
+private fun PhotosCard(photosList: List<Uri> = emptyList()) {
 
     ContentCard(cardTitle = stringResource(R.string.cardTitle_photos), modifier = Modifier.padding(8.dp)) {
         HorizontalSlider(sliderList = photosList)

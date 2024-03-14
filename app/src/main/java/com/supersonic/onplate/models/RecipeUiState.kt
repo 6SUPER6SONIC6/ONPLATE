@@ -1,5 +1,6 @@
 package com.supersonic.onplate.models
 
+import android.net.Uri
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.toMutableStateList
 import com.supersonic.onplate.pages.newRecipe.directions.Step
@@ -11,6 +12,7 @@ data class RecipeUiState(
     val description: String = "",
     val ingredients: MutableList<Ingredient> = mutableStateListOf(),
     val directions: MutableList<Step> = mutableStateListOf(),
+    val photos: MutableList<Uri> = mutableStateListOf(),
     val cookingTimeHour: Int = 0,
     val cookingTimeMinute: Int = 0,
     var cookingTimeString: String = ""
@@ -66,6 +68,7 @@ fun RecipeUiState.toRecipe(): Recipe = Recipe(
     description = description,
     ingredients = ingredients,
     directions = directions,
+    photos = photos,
     cookingTimeHour = cookingTimeHour,
     cookingTimeMinute = cookingTimeMinute,
     cookingTimeString = cookingTimeString
@@ -76,6 +79,7 @@ fun Recipe.toRecipeUiState() : RecipeUiState = RecipeUiState(
     description = description,
     ingredients = ingredients.toMutableStateList(),
     directions = directions.toMutableStateList(),
+    photos = photos.toMutableStateList(),
     cookingTimeHour = cookingTimeHour,
     cookingTimeMinute = cookingTimeMinute,
     cookingTimeString = cookingTimeString

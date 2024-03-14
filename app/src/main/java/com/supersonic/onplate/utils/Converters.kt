@@ -1,5 +1,6 @@
 package com.supersonic.onplate.utils
 
+import android.net.Uri
 import androidx.room.TypeConverter
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -29,5 +30,16 @@ class Converters {
         val type = object : TypeToken<List<Step>>() {}.type
         return Gson().fromJson(stepListString, type)
     }
+
+    @TypeConverter
+    fun fromUriList(uriList: List<Uri?>): String {
+        return uriList.joinToString(separator = ",") { it.toString() }
+    }
+
+    @TypeConverter
+    fun toUriList(uriListString: String): List<Uri> {
+        return uriListString.split(",").map { Uri.parse(it) }
+    }
+
 
 }

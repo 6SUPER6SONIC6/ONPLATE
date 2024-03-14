@@ -8,7 +8,7 @@ import androidx.room.TypeConverters
 import com.supersonic.onplate.models.Recipe
 import com.supersonic.onplate.utils.Converters
 
-@Database(entities = [Recipe::class], version = 3, exportSchema = false)
+@Database(entities = [Recipe::class], version = 4, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class OnplateDatabase : RoomDatabase(){
     abstract fun recipeDao(): RecipeDao

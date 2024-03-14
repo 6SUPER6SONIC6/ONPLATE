@@ -1,5 +1,6 @@
 package com.supersonic.onplate.models
 
+import android.net.Uri
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
@@ -16,6 +17,7 @@ data class Recipe(
     val description: String,
     val ingredients: List<Ingredient>,
     val directions: List<Step>,
+    val photos: List<Uri>,
     val cookingTimeHour: Int,
     val cookingTimeMinute: Int,
     val cookingTimeString: String,

@@ -1,9 +1,9 @@
 package com.supersonic.onplate.pages.newRecipe
 
-import android.content.pm.PackageManager
-import android.util.Log
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
+import android.Manifest
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -11,8 +11,10 @@ import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
@@ -21,6 +23,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -30,6 +33,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -44,9 +48,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberPermissionState
 import com.supersonic.onplate.R
 import com.supersonic.onplate.models.RecipeUiState
 import com.supersonic.onplate.models.addEmptyIngredient
@@ -62,6 +68,7 @@ import com.supersonic.onplate.pages.newRecipe.directions.StepsList
 import com.supersonic.onplate.pages.newRecipe.ingredients.Ingredient
 import com.supersonic.onplate.pages.newRecipe.ingredients.IngredientsList
 import com.supersonic.onplate.ui.components.ContentCard
+import com.supersonic.onplate.ui.components.ContentDialog
 import com.supersonic.onplate.ui.components.PrimaryButton
 import com.supersonic.onplate.ui.components.RecipeTextField
 import com.supersonic.onplate.ui.components.TopBar
@@ -72,6 +79,8 @@ object NewRecipeScreenDestination : NavigationDestination {
     override val route = "new_recipe"
     override val titleRes = R.string.screenTitle_NewRecipe
 }
+
+private val openCamera: MutableState<Boolean> = mutableStateOf(false)
 
 @Composable
 fun NewRecipeScreen(
@@ -116,23 +125,58 @@ fun NewRecipeScreenContent(
     onSaveClick: () -> Unit,
     onNavigateToCamera: () -> Unit
 ) {
-    Column(
-        modifier = modifier
-            .verticalScroll(rememberScrollState())
-    ) {
+    val context = LocalContext.current
+    if (openCamera.value){
 
-        OverviewCard(recipeUiState = recipeUiState, onValueChange = onRecipeValueChange)
-        IngredientsCard(recipeUiState = recipeUiState)
-        DirectionsCard(recipeUiState = recipeUiState)
-        PhotosCard(onNavigateToCamera = onNavigateToCamera)
-        PrimaryButton(text = "Save",
-            enabled = recipeUiState.isValid(),
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 16.dp),
-            onClick = onSaveClick
-        )
+        Permission(
+            permission = Manifest.permission.CAMERA,
+            rationale = "You said you wanted a picture, so I'm going to have to ask for permission.",
+            permissionNotAvailableContent = {
+                ContentDialog(title = "I not have permission for a camera =(", onConfirm = {  }, onCancel = {
+                    openCamera.value = false
+                }) {
+                    Text("You have not provided access to the camera. Go to the app settings to grant access.")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(onClick = {
+                        context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                            data = Uri.fromParts("package", context.packageName, null)
+                        })
+                    }) {
+                        Text(text = "Open Settings")
+                    }
+                }
+            },
+            onCancelDialog = { openCamera.value = false }
+        ){
+            CameraCapture(
+                modifier = modifier
+            ) { file ->
+                recipeUiState.photos.add(file.toUri())
+                openCamera.value = false
+            }
+        }
 
+
+
+
+    } else {
+        Column(
+            modifier = modifier
+                .verticalScroll(rememberScrollState())
+        ) {
+
+            OverviewCard(recipeUiState = recipeUiState, onValueChange = onRecipeValueChange)
+            IngredientsCard(recipeUiState = recipeUiState)
+            DirectionsCard(recipeUiState = recipeUiState)
+            PhotosCard(onNavigateToCamera = onNavigateToCamera, photos = recipeUiState.photos)
+            PrimaryButton(text = "Save",
+                enabled = recipeUiState.isValid(),
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 16.dp),
+                onClick = onSaveClick
+            )
+
+        }
     }
-
 }
 
 @Composable
@@ -325,28 +369,14 @@ private fun DirectionsCard(
     
 }
 
-
 @Composable
 private fun PhotosCard(
-    photos: List<String> = emptyList(),
+    photos: List<Uri> = emptyList(),
     onNavigateToCamera: () -> Unit
 ) {
 
-    var openCamera by remember { mutableStateOf(false) }
 
         ContentCard(cardTitle = stringResource(R.string.cardTitle_photos), modifier = Modifier.padding(8.dp)) {
-
-
-            val requestPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {isGranted ->
-                if (isGranted){
-                    Log.i("camera", "Permission granted")
-                } else {
-                    Log.i("camera", "Permission denied")
-                }
-            }
-
-            val context = LocalContext.current
-
 
             LazyRow(
                 contentPadding = PaddingValues(vertical = 16.dp, horizontal = 8.dp)
@@ -388,16 +418,10 @@ private fun PhotosCard(
                                     contentDescription = null,
                                     modifier = Modifier
                                         .clickable {
-                                            if (ContextCompat.checkSelfPermission(
-                                                    context, android.Manifest.permission.CAMERA
-                                            ) == PackageManager.PERMISSION_GRANTED
-                                                ) {
-                                    Log.i("camera", "Permission previously granted")
-                                    onNavigateToCamera()
-                                } else {
-                                    requestPermissionLauncher.launch(android.Manifest.permission.CAMERA)
-                                }
-                                }
+
+
+                                            openCamera.value = true
+                                        }
                                 )
                                 Text(text = "Add Photo")
                             }
@@ -407,6 +431,53 @@ private fun PhotosCard(
             }
         }
 
+}
+
+@OptIn(ExperimentalPermissionsApi::class)
+@Composable
+fun Permission(
+    permission: String = Manifest.permission.CAMERA,
+    rationale: String = "This permission is important for this app. Please grant the permission.",
+    permissionNotAvailableContent: @Composable () -> Unit = {},
+    onCancelDialog: () -> Unit,
+    content: @Composable () -> Unit = {}
+) {
+    val permissionState = rememberPermissionState(permission = permission)
+
+
+    when {
+        permissionState.hasPermission -> content()
+        permissionState.shouldShowRationale -> permissionNotAvailableContent()
+        !permissionState.hasPermission -> Rational(
+        text = rationale,
+        onRequestPermission = { permissionState.launchPermissionRequest() },
+        onCancelDialog = onCancelDialog
+    )
+    }
+
+//    PermissionRequired(
+//        permissionState = permissionState,
+//        permissionNotGrantedContent = {
+//            Rational(
+//                text = rationale,
+//                onRequestPermission = { permissionState.launchPermissionRequest() },
+//                onCancelDialog = onCancelDialog
+//            )
+//        },
+//        permissionNotAvailableContent = permissionNotAvailableContent,
+//        content = content)
+
+}
+
+@Composable
+private fun Rational(
+    text: String,
+    onRequestPermission: () -> Unit,
+    onCancelDialog: () -> Unit
+) {
+    ContentDialog(title = "Permission request", onConfirm = onRequestPermission , onCancel = onCancelDialog) {
+        Text(text = text)
+    }
 }
 
 @Preview(showSystemUi = true)

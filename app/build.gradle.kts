@@ -108,4 +108,7 @@ dependencies {
     implementation ("androidx.camera:camera-lifecycle:$camerax_version")
     implementation ("androidx.camera:camera-view:1.3.2")
 
+    // Permissions
+    implementation ("com.google.accompanist:accompanist-permissions:0.18.0")
+
 }

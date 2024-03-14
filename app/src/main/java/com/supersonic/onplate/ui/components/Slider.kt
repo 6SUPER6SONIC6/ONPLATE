@@ -1,5 +1,6 @@
 package com.supersonic.onplate.ui.components
 
+import android.net.Uri
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -42,7 +43,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun HorizontalSlider(
     modifier: Modifier = Modifier,
-    sliderList: List<String>,
+    sliderList: List<Uri>,
     forwardIcon: ImageVector = Icons.Filled.KeyboardArrowRight,
     backwardIcon: ImageVector = Icons.Filled.KeyboardArrowLeft,
     imageHeight : Dp = 220.dp
@@ -151,7 +152,7 @@ val photos = listOf(
 fun SliderPreview() {
     ONPLATETheme {
         ContentCard(cardTitle = "Photos") {
-            HorizontalSlider(sliderList = photos)
+            HorizontalSlider(sliderList = emptyList())
         }
 
 
