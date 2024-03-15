@@ -85,28 +85,27 @@ private val openCamera: MutableState<Boolean> = mutableStateOf(false)
 @Composable
 fun NewRecipeScreen(
     viewModel: NewRecipeViewModel,
-    onBackClick: () -> Unit,
-    onNavigateToCamera: () -> Unit
+    onBackClick: () -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
-                 NewRecipeTopBar(onBackClick)
+            if (!openCamera.value){
+                NewRecipeTopBar(onBackClick)
+            }
         },
         content = {
                   NewRecipeScreenContent(
                       modifier = Modifier.padding(it),
                       recipeUiState = viewModel.recipeUiState,
-                      onRecipeValueChange = viewModel::updateUiState,
-                      onSaveClick = {
-                          coroutineScope.launch {
-                              viewModel.saveRecipe()
-                          }
-                          onBackClick()
-                      },
-                      onNavigateToCamera = onNavigateToCamera
-                  )
+                      onRecipeValueChange = viewModel::updateUiState
+                  ) {
+                      coroutineScope.launch {
+                          viewModel.saveRecipe()
+                      }
+                      onBackClick()
+                  }
         },
     )
 }
@@ -123,52 +122,24 @@ fun NewRecipeScreenContent(
     recipeUiState: RecipeUiState,
     onRecipeValueChange: (RecipeUiState) -> Unit,
     onSaveClick: () -> Unit,
-    onNavigateToCamera: () -> Unit
 ) {
-    val context = LocalContext.current
     if (openCamera.value){
-
-        Permission(
-            permission = Manifest.permission.CAMERA,
-            rationale = "You said you wanted a picture, so I'm going to have to ask for permission.",
-            permissionNotAvailableContent = {
-                ContentDialog(title = "I not have permission for a camera =(", onConfirm = {  }, onCancel = {
-                    openCamera.value = false
-                }) {
-                    Text("You have not provided access to the camera. Go to the app settings to grant access.")
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Button(onClick = {
-                        context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                            data = Uri.fromParts("package", context.packageName, null)
-                        })
-                    }) {
-                        Text(text = "Open Settings")
-                    }
-                }
-            },
-            onCancelDialog = { openCamera.value = false }
-        ){
             CameraCapture(
-                modifier = modifier
+                modifier = modifier,
+                onBackClick = { openCamera.value = false},
             ) { file ->
                 recipeUiState.photos.add(file.toUri())
                 openCamera.value = false
             }
-        }
-
-
-
-
     } else {
         Column(
             modifier = modifier
                 .verticalScroll(rememberScrollState())
         ) {
-
             OverviewCard(recipeUiState = recipeUiState, onValueChange = onRecipeValueChange)
             IngredientsCard(recipeUiState = recipeUiState)
             DirectionsCard(recipeUiState = recipeUiState)
-            PhotosCard(onNavigateToCamera = onNavigateToCamera, photos = recipeUiState.photos)
+            PhotosCard(photos = recipeUiState.photos)
             PrimaryButton(text = "Save",
                 enabled = recipeUiState.isValid(),
                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 16.dp),
@@ -371,9 +342,10 @@ private fun DirectionsCard(
 
 @Composable
 private fun PhotosCard(
-    photos: List<Uri> = emptyList(),
-    onNavigateToCamera: () -> Unit
+    photos: List<Uri> = emptyList()
 ) {
+
+    var requestCameraPermission by remember { mutableStateOf(false) }
 
 
         ContentCard(cardTitle = stringResource(R.string.cardTitle_photos), modifier = Modifier.padding(8.dp)) {
@@ -418,9 +390,7 @@ private fun PhotosCard(
                                     contentDescription = null,
                                     modifier = Modifier
                                         .clickable {
-
-
-                                            openCamera.value = true
+                                            requestCameraPermission = true
                                         }
                                 )
                                 Text(text = "Add Photo")
@@ -431,6 +401,30 @@ private fun PhotosCard(
             }
         }
 
+    if (requestCameraPermission){
+        val context = LocalContext.current
+        Permission(
+            permission = Manifest.permission.CAMERA,
+            rationale = "You said you wanted a picture, so I'm going to have to ask for permission.",
+            permissionNotAvailableContent = {
+                ContentDialog(title = "I not have permission for a camera =(", onConfirm = {  }, onCancel = {
+                    requestCameraPermission = false
+                }) {
+                    Text("You have not provided access to the camera. Go to the app settings to grant access.")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(onClick = {
+                        context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                            data = Uri.fromParts("package", context.packageName, null)
+                        })
+                    }) {
+                        Text(text = "Open Settings")
+                    }
+                }
+            },
+            onCancelDialog = { requestCameraPermission = false },
+            onPermissionGranted = { openCamera.value = it }
+        )
+    }
 }
 
 @OptIn(ExperimentalPermissionsApi::class)
@@ -440,13 +434,12 @@ fun Permission(
     rationale: String = "This permission is important for this app. Please grant the permission.",
     permissionNotAvailableContent: @Composable () -> Unit = {},
     onCancelDialog: () -> Unit,
-    content: @Composable () -> Unit = {}
+    onPermissionGranted: (Boolean) -> Unit
 ) {
     val permissionState = rememberPermissionState(permission = permission)
 
-
     when {
-        permissionState.hasPermission -> content()
+        permissionState.hasPermission -> onPermissionGranted(permissionState.hasPermission)
         permissionState.shouldShowRationale -> permissionNotAvailableContent()
         !permissionState.hasPermission -> Rational(
         text = rationale,
@@ -454,19 +447,6 @@ fun Permission(
         onCancelDialog = onCancelDialog
     )
     }
-
-//    PermissionRequired(
-//        permissionState = permissionState,
-//        permissionNotGrantedContent = {
-//            Rational(
-//                text = rationale,
-//                onRequestPermission = { permissionState.launchPermissionRequest() },
-//                onCancelDialog = onCancelDialog
-//            )
-//        },
-//        permissionNotAvailableContent = permissionNotAvailableContent,
-//        content = content)
-
 }
 
 @Composable
@@ -486,7 +466,7 @@ private fun NewRecipeScreenContentPreview() {
     ONPLATETheme {
         NewRecipeScreenContent(modifier = Modifier, recipeUiState = RecipeUiState(
             ingredients = mutableListOf(Ingredient()), directions = mutableListOf(Step())
-        ), onRecipeValueChange = {}, onSaveClick = {}, onNavigateToCamera = {})
+        ), onRecipeValueChange = {}) {}
     }
 }
 
@@ -512,6 +492,6 @@ private fun IngredientsCardPreview() {
 @Composable
 private fun PhotosCardPreview() {
     ONPLATETheme {
-        PhotosCard(onNavigateToCamera = {})
+        PhotosCard()
     }
 }

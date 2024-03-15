@@ -32,21 +32,19 @@ fun EditRecipeScreen(
         NewRecipeScreenContent(
             modifier = Modifier.padding(innerPadding),
             recipeUiState = viewModel.recipeUiState,
-            onRecipeValueChange = viewModel::updateUiState,
-            onSaveClick = {
-                coroutineScope.launch {
-                    viewModel.updateRecipe()
-                    onBackClick()
-                }
-            },
-            onNavigateToCamera = {}
-        )
+            onRecipeValueChange = viewModel::updateUiState
+        ) {
+            coroutineScope.launch {
+                viewModel.updateRecipe()
+                onBackClick()
+            }
+        }
     }
 
 
 }
 
 @Composable
-fun EditRecipeTopBar(onBackClick: () -> Unit) {
+private fun EditRecipeTopBar(onBackClick: () -> Unit) {
     TopBar(title = stringResource(EditRecipeScreenDestination.titleRes), onBackClick = onBackClick)
 }

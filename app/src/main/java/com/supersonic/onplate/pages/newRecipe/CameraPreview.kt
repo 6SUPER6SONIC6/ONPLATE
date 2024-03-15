@@ -14,8 +14,10 @@ import androidx.camera.view.PreviewView.ScaleType
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddCircle
+import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
@@ -32,6 +34,7 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import com.supersonic.onplate.R
 import com.supersonic.onplate.navigation.NavigationDestination
 import kotlinx.coroutines.Dispatchers
@@ -52,6 +55,7 @@ object CameraScreenDestination : NavigationDestination {
 fun CameraCapture(
     modifier: Modifier = Modifier,
     cameraSelector: CameraSelector = CameraSelector.DEFAULT_BACK_CAMERA,
+    onBackClick: () -> Unit = {},
     onImageFile: (File) -> Unit = {}
 ) {
     val context = LocalContext.current
@@ -68,12 +72,23 @@ fun CameraCapture(
             }
             val coroutineScope = rememberCoroutineScope()
 
+
+
             CameraPreview(
                 modifier = Modifier.fillMaxSize(),
                 onUseCase = {
                     previewUseCase = it
                 }
             )
+
+            IconButton(
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(16.dp),
+                onClick = onBackClick
+            ) {
+                Icon(Icons.Outlined.ArrowBack, contentDescription = null)
+            }
 
             IconButton(
                 onClick = {
@@ -85,6 +100,7 @@ fun CameraCapture(
                 },
                 modifier = Modifier
                     .padding(16.dp)
+                    .size(50.dp)
                     .align(Alignment.BottomCenter)
             ) {
                 Icon(Icons.Outlined.AddCircle, contentDescription = null)
@@ -145,6 +161,7 @@ suspend fun ImageCapture.takePicture(executor: Executor): File {
             File("/dev/null")
         }
     }
+    Log.i("camera_takePicture", photoFile.toUri().toString())
 
     return suspendCoroutine { continuation ->
         val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()

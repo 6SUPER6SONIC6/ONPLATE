@@ -85,8 +85,8 @@ fun RootAppNavigation(
 
             NewRecipeScreen(
                 viewModel = viewModel,
-                onBackClick = { navController.navigateUp() },
-                onNavigateToCamera = {navController.navigate(CameraScreenDestination.route)})
+                onBackClick = { navController.navigateUp() }
+            )
 
         }
 
