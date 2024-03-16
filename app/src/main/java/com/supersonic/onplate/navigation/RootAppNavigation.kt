@@ -91,7 +91,7 @@ fun RootAppNavigation(
         }
 
         composable(route = CameraScreenDestination.route) {
-            CameraCapture()
+            CameraCapture(onImageCaptured = {})
         }
 
         // Edit Recipe Screen

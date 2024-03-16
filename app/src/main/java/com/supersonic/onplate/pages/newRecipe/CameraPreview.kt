@@ -1,6 +1,10 @@
 package com.supersonic.onplate.pages.newRecipe
 
+import android.content.ContentValues
 import android.content.Context
+import android.net.Uri
+import android.os.Build
+import android.provider.MediaStore
 import android.util.Log
 import android.view.ViewGroup
 import androidx.camera.core.CameraSelector
@@ -34,16 +38,13 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
-import androidx.core.net.toUri
 import com.supersonic.onplate.R
 import com.supersonic.onplate.navigation.NavigationDestination
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Locale
 import java.util.concurrent.Executor
 import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
 object CameraScreenDestination : NavigationDestination {
@@ -56,7 +57,7 @@ fun CameraCapture(
     modifier: Modifier = Modifier,
     cameraSelector: CameraSelector = CameraSelector.DEFAULT_BACK_CAMERA,
     onBackClick: () -> Unit = {},
-    onImageFile: (File) -> Unit = {}
+    onImageCaptured: (Uri) -> Unit,
 ) {
     val context = LocalContext.current
 
@@ -71,7 +72,6 @@ fun CameraCapture(
                 )
             }
             val coroutineScope = rememberCoroutineScope()
-
 
 
             CameraPreview(
@@ -93,9 +93,12 @@ fun CameraCapture(
             IconButton(
                 onClick = {
                     coroutineScope.launch {
-                        imageCaptureUseCase.takePicture(context.executor).let {
-                            onImageFile(it)
-                        }
+                        takePhoto(
+                            context = context,
+                            imageCapture = imageCaptureUseCase,
+                            executor = context.executor,
+                            onImageCaptured = onImageCaptured
+                        )
                     }
                 },
                 modifier = Modifier
@@ -152,32 +155,48 @@ fun CameraPreview(
     )
 }
 
-suspend fun ImageCapture.takePicture(executor: Executor): File {
-    val photoFile = withContext(Dispatchers.IO) {
-        kotlin.runCatching {
-            File.createTempFile("image", "jpg")
-        }.getOrElse { exception ->
-            Log.e("camera_takePicture", "Failed to create temporary file", exception)
-            File("/dev/null")
+private fun takePhoto(
+    context: Context,
+    imageCapture: ImageCapture,
+    executor: Executor,
+    onImageCaptured: (Uri) -> Unit,) {
+
+    val appName = context.resources.getString(R.string.app_name)
+    val name = "$appName ${SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSS", Locale.US)
+        .format(System.currentTimeMillis())}"
+
+    val contentValues = ContentValues().apply {
+        put(MediaStore.MediaColumns.DISPLAY_NAME, name)
+        put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
+            put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/$appName")
         }
     }
-    Log.i("camera_takePicture", photoFile.toUri().toString())
 
-    return suspendCoroutine { continuation ->
-        val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
-        takePicture(outputOptions, executor, object : ImageCapture.OnImageSavedCallback {
-            override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-                continuation.resume(photoFile)
-            }
+    val outputOptions = ImageCapture.OutputFileOptions
+        .Builder(
+            context.contentResolver,
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            contentValues
+        )
+        .build()
+
+    imageCapture.takePicture(
+        outputOptions,
+        executor,
+        object : ImageCapture.OnImageSavedCallback {
 
             override fun onError(exception: ImageCaptureException) {
                 Log.e("camera_takePicture", "Image capture failed", exception)
-                continuation.resumeWithException(exception)
             }
-        })
-    }
-}
 
+            override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
+                outputFileResults.savedUri?.let { onImageCaptured(it) }
+            }
+        }
+    )
+
+}
 private suspend fun Context.getCameraProvider(): ProcessCameraProvider = suspendCoroutine { continuation ->
     ProcessCameraProvider.getInstance(this).also { future ->
         future.addListener({

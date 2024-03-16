@@ -48,7 +48,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -127,9 +126,8 @@ fun NewRecipeScreenContent(
             CameraCapture(
                 modifier = modifier,
                 onBackClick = { openCamera.value = false},
-            ) { file ->
-                recipeUiState.photos.add(file.toUri())
-                openCamera.value = false
+            ) { capturedImageUri ->
+                recipeUiState.photos.add(capturedImageUri)
             }
     } else {
         Column(
