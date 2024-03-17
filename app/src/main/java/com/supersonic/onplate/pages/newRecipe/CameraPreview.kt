@@ -59,9 +59,8 @@ fun CameraCapture(
     onBackClick: () -> Unit = {},
     onImageCaptured: (Uri) -> Unit,
 ) {
-    val context = LocalContext.current
-
         Box(modifier = modifier) {
+            val context = LocalContext.current
             val lifecycleOwner = LocalLifecycleOwner.current
             var previewUseCase by remember { mutableStateOf<UseCase>(Preview.Builder().build()) }
             val imageCaptureUseCase by remember {
@@ -142,7 +141,8 @@ fun CameraPreview(
                 )
             }
 
-            onUseCase(Preview.Builder()
+            onUseCase(
+                Preview.Builder()
                 .build()
                 .also {
                     it.setSurfaceProvider(previewView.surfaceProvider)

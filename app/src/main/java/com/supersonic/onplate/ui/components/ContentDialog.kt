@@ -3,10 +3,12 @@ package com.supersonic.onplate.ui.components
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.Icon
@@ -28,9 +30,11 @@ import com.supersonic.onplate.ui.theme.ONPLATETheme
 
 @Composable
 fun ContentDialog(
-    title: String,
+    title: String? = null,
     onConfirm: () -> Unit,
+    confirmButtonText: String? = null,
     onCancel: () -> Unit,
+    cancelButtonText: String? = null,
     confirmButtonEnabled: Boolean = true,
     icon: @Composable (() -> Unit)? = null,
     body: @Composable () -> Unit
@@ -41,7 +45,8 @@ fun ContentDialog(
             shape = MaterialTheme.shapes.extraLarge,
             tonalElevation = 6.dp,
             modifier = Modifier
-                .width(320.dp)
+                .widthIn(min = 280.dp, max = 560.dp)
+                .padding(24.dp)
                 .alpha(0.95f)
         ) {
 
@@ -55,11 +60,14 @@ fun ContentDialog(
                     icon()
                 }
 
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(top = 16.dp, bottom = 16.dp)
-                )
+                if (title != null) {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.titleLarge,
+//                        modifier = Modifier.padding(top = 16.dp, bottom = 16.dp)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
 
                 body()
 
@@ -68,30 +76,29 @@ fun ContentDialog(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .align(Alignment.End)
-                        .padding(top = 16.dp)
+                        .padding(top = 24.dp)
 
                 ) {
-                    TextButton(onClick = onCancel) {
-                        Text(
-                            stringResource(R.string.dialog_button_cancel),
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                    }
-                    TextButton(
-                        onClick = onConfirm,
-                        enabled = confirmButtonEnabled
-                    ) {
-                        Text(
-                            stringResource(R.string.dialog_button_confirm),
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                    }
+                        TextButton(onClick = onCancel) {
+                            Text(
+                                text = cancelButtonText ?: stringResource(R.string.dialog_button_cancel),
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
 
+                        TextButton(
+                            onClick = onConfirm,
+                            enabled = confirmButtonEnabled
+                        ) {
+                            Text(
+                                text = confirmButtonText ?: stringResource(R.string.dialog_button_confirm),
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+
+                        }
                 }
 
             }
-
-
 
         }
     }

@@ -11,10 +11,8 @@ import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
@@ -23,11 +21,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme.colorScheme
+import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -50,8 +48,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.rememberPermissionState
 import com.supersonic.onplate.R
 import com.supersonic.onplate.models.RecipeUiState
 import com.supersonic.onplate.models.addEmptyIngredient
@@ -72,6 +68,7 @@ import com.supersonic.onplate.ui.components.PrimaryButton
 import com.supersonic.onplate.ui.components.RecipeTextField
 import com.supersonic.onplate.ui.components.TopBar
 import com.supersonic.onplate.ui.theme.ONPLATETheme
+import com.supersonic.onplate.utils.Permission
 import kotlinx.coroutines.launch
 
 object NewRecipeScreenDestination : NavigationDestination {
@@ -405,56 +402,28 @@ private fun PhotosCard(
             permission = Manifest.permission.CAMERA,
             rationale = "You said you wanted a picture, so I'm going to have to ask for permission.",
             permissionNotAvailableContent = {
-                ContentDialog(title = "I not have permission for a camera =(", onConfirm = {  }, onCancel = {
+                ContentDialog(
+                    title = "Camera Permission",
+                    confirmButtonText = "Go to settings",
+                    cancelButtonText = "Not now",
+                    onConfirm = {
+                    context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                        data = Uri.fromParts("package", context.packageName, null)
+                    })
+                },
+                    onCancel = {
                     requestCameraPermission = false
                 }) {
-                    Text("You have not provided access to the camera. Go to the app settings to grant access.")
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Button(onClick = {
-                        context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                            data = Uri.fromParts("package", context.packageName, null)
-                        })
-                    }) {
-                        Text(text = "Open Settings")
-                    }
+                    Text(
+                        text = "ONPLATE needs access to the camera so you can take photos and add them to your recipe.\n" +
+                            "Setting > Permissions > Camera",
+                        style = typography.bodyMedium
+                    )
                 }
             },
             onCancelDialog = { requestCameraPermission = false },
             onPermissionGranted = { openCamera.value = it }
         )
-    }
-}
-
-@OptIn(ExperimentalPermissionsApi::class)
-@Composable
-fun Permission(
-    permission: String = Manifest.permission.CAMERA,
-    rationale: String = "This permission is important for this app. Please grant the permission.",
-    permissionNotAvailableContent: @Composable () -> Unit = {},
-    onCancelDialog: () -> Unit,
-    onPermissionGranted: (Boolean) -> Unit
-) {
-    val permissionState = rememberPermissionState(permission = permission)
-
-    when {
-        permissionState.hasPermission -> onPermissionGranted(permissionState.hasPermission)
-        permissionState.shouldShowRationale -> permissionNotAvailableContent()
-        !permissionState.hasPermission -> Rational(
-        text = rationale,
-        onRequestPermission = { permissionState.launchPermissionRequest() },
-        onCancelDialog = onCancelDialog
-    )
-    }
-}
-
-@Composable
-private fun Rational(
-    text: String,
-    onRequestPermission: () -> Unit,
-    onCancelDialog: () -> Unit
-) {
-    ContentDialog(title = "Permission request", onConfirm = onRequestPermission , onCancel = onCancelDialog) {
-        Text(text = text)
     }
 }
 
