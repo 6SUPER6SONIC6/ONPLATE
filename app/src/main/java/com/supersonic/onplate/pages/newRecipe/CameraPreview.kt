@@ -15,15 +15,23 @@ import androidx.camera.core.UseCase
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.camera.view.PreviewView.ScaleType
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddCircle
-import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -33,13 +41,15 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.supersonic.onplate.R
-import com.supersonic.onplate.navigation.NavigationDestination
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -47,14 +57,10 @@ import java.util.concurrent.Executor
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
-object CameraScreenDestination : NavigationDestination {
-    override val route = "camera"
-    override val titleRes = R.string.screenTitle_NewRecipe
-}
-
 @Composable
 fun CameraCapture(
     modifier: Modifier = Modifier,
+    photos: List<Uri> = emptyList(),
     cameraSelector: CameraSelector = CameraSelector.DEFAULT_BACK_CAMERA,
     onBackClick: () -> Unit = {},
     onImageCaptured: (Uri) -> Unit,
@@ -80,32 +86,61 @@ fun CameraCapture(
                 }
             )
 
-            IconButton(
+            Row(
                 modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .padding(16.dp),
-                onClick = onBackClick
-            ) {
-                Icon(Icons.Outlined.ArrowBack, contentDescription = null)
-            }
-
-            IconButton(
-                onClick = {
-                    coroutineScope.launch {
-                        takePhoto(
-                            context = context,
-                            imageCapture = imageCaptureUseCase,
-                            executor = context.executor,
-                            onImageCaptured = onImageCaptured
-                        )
-                    }
-                },
-                modifier = Modifier
-                    .padding(16.dp)
-                    .size(50.dp)
+                    .fillMaxWidth()
                     .align(Alignment.BottomCenter)
+//                    .background(MaterialTheme.colorScheme.background, RoundedCornerShape(8.dp))
+                    .padding(vertical = 32.dp, horizontal = 16.dp),
+                horizontalArrangement = Arrangement.SpaceAround
             ) {
-                Icon(Icons.Outlined.AddCircle, contentDescription = null)
+
+                Surface(
+                    modifier = Modifier
+                        .size(64.dp),
+                    shape = CircleShape,
+                    border = BorderStroke(2.dp, MaterialTheme.colorScheme.outline)
+                ) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(context)
+                            .data(photos.lastOrNull())
+                            .crossfade(true)
+                            .build(),
+                        contentScale = ContentScale.Crop,
+                        contentDescription = null
+                    )
+
+                }
+
+                IconButton(
+                    onClick = {
+                        coroutineScope.launch {
+                            takePhoto(
+                                context = context,
+                                imageCapture = imageCaptureUseCase,
+                                executor = context.executor,
+                                onImageCaptured = onImageCaptured
+                            )
+                        }
+                    },
+                    modifier = Modifier
+                        .size(64.dp)
+                ) {
+                    Icon(Icons.Outlined.AddCircle, contentDescription = null)
+                }
+
+                IconButton(
+                    onClick = onBackClick,
+                    modifier = Modifier
+                    .size(64.dp)
+                ){
+                  Icon(
+                      imageVector = if (photos.isEmpty()) Icons.Outlined.Close else Icons.Outlined.Check,
+                      modifier = Modifier.size(32.dp),
+                      contentDescription = null
+                  )
+
+                }
             }
 
             LaunchedEffect(previewUseCase) {

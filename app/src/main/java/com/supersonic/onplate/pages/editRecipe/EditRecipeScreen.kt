@@ -1,15 +1,12 @@
 package com.supersonic.onplate.pages.editRecipe
 
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.supersonic.onplate.R
 import com.supersonic.onplate.navigation.NavigationDestination
-import com.supersonic.onplate.pages.newRecipe.NewRecipeScreenContent
-import com.supersonic.onplate.ui.components.TopBar
+import com.supersonic.onplate.pages.newRecipe.NewRecipeScreenBody
 import kotlinx.coroutines.launch
 
 object EditRecipeScreenDestination : NavigationDestination {
@@ -26,25 +23,18 @@ fun EditRecipeScreen(
 ) {
     val coroutineScope = rememberCoroutineScope()
 
-    Scaffold(
-        topBar = { EditRecipeTopBar(onBackClick) }
-    ){ innerPadding ->
-        NewRecipeScreenContent(
-            modifier = Modifier.padding(innerPadding),
-            recipeUiState = viewModel.recipeUiState,
-            onRecipeValueChange = viewModel::updateUiState
-        ) {
+    NewRecipeScreenBody(
+        modifier = Modifier,
+        recipeUiState = viewModel.recipeUiState,
+        onRecipeValueChange = viewModel::updateUiState,
+        onBackClick = onBackClick,
+        topBarTitle = stringResource(EditRecipeScreenDestination.titleRes),
+        onSaveClick = {
             coroutineScope.launch {
                 viewModel.updateRecipe()
                 onBackClick()
             }
-        }
-    }
+        })
 
 
-}
-
-@Composable
-private fun EditRecipeTopBar(onBackClick: () -> Unit) {
-    TopBar(title = stringResource(EditRecipeScreenDestination.titleRes), onBackClick = onBackClick)
 }

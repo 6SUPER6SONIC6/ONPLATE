@@ -85,31 +85,73 @@ fun NewRecipeScreen(
 ) {
     val coroutineScope = rememberCoroutineScope()
 
-    Scaffold(
-        topBar = {
-            if (!openCamera.value){
-                NewRecipeTopBar(onBackClick)
+    NewRecipeScreenBody(
+        modifier = Modifier,
+        recipeUiState = viewModel.recipeUiState,
+        onRecipeValueChange = viewModel::updateUiState,
+        topBarTitle = stringResource(NewRecipeScreenDestination.titleRes),
+        onBackClick = onBackClick,
+        onSaveClick = {
+            coroutineScope.launch {
+                viewModel.saveRecipe()
+                onBackClick()
             }
-        },
-        content = {
-                  NewRecipeScreenContent(
-                      modifier = Modifier.padding(it),
-                      recipeUiState = viewModel.recipeUiState,
-                      onRecipeValueChange = viewModel::updateUiState
-                  ) {
-                      coroutineScope.launch {
-                          viewModel.saveRecipe()
-                      }
-                      onBackClick()
-                  }
-        },
+        }
     )
+}
+
+@Composable
+fun NewRecipeScreenBody(
+    modifier: Modifier,
+    recipeUiState: RecipeUiState,
+    onRecipeValueChange: (RecipeUiState) -> Unit,
+    topBarTitle: String,
+    onBackClick: () -> Unit,
+    onSaveClick: () -> Unit,
+
+) {
+
+    if (openCamera.value){
+
+        CameraCapture(
+            modifier = modifier,
+            photos = recipeUiState.photos,
+            onBackClick = { openCamera.value = false},
+        ) { capturedImageUri ->
+            recipeUiState.photos.add(capturedImageUri)
+        }
+
+    } else {
+
+        Scaffold(
+            topBar = { NewRecipeTopBar(
+                title = topBarTitle,
+                onBackClick
+            ) },
+            content = {
+                NewRecipeScreenContent(
+                    modifier = Modifier.padding(it),
+                    recipeUiState = recipeUiState,
+                    onRecipeValueChange = onRecipeValueChange,
+                    onSaveClick = onSaveClick
+                )
+            },
+        )
+
+    }
+
 }
 
 
 @Composable
-private fun NewRecipeTopBar(onBackClick: () -> Unit) {
-    TopBar(title = stringResource(NewRecipeScreenDestination.titleRes), onBackClick = onBackClick)
+private fun NewRecipeTopBar(
+    title: String,
+    onBackClick: () -> Unit
+) {
+    TopBar(
+        title = title,
+        onBackClick = onBackClick
+    )
 }
 
 @Composable
@@ -119,14 +161,6 @@ fun NewRecipeScreenContent(
     onRecipeValueChange: (RecipeUiState) -> Unit,
     onSaveClick: () -> Unit,
 ) {
-    if (openCamera.value){
-            CameraCapture(
-                modifier = modifier,
-                onBackClick = { openCamera.value = false},
-            ) { capturedImageUri ->
-                recipeUiState.photos.add(capturedImageUri)
-            }
-    } else {
         Column(
             modifier = modifier
                 .verticalScroll(rememberScrollState())
@@ -142,7 +176,6 @@ fun NewRecipeScreenContent(
             )
 
         }
-    }
 }
 
 @Composable
