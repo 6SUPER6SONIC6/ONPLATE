@@ -1,5 +1,6 @@
 package com.supersonic.onplate.models
 
+import android.content.ContentResolver
 import android.net.Uri
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.toMutableStateList
@@ -60,6 +61,13 @@ fun RecipeUiState.addEmptyStep() {
     } else {
         directions.add(Step(id = directions.last().id + 1))
     }
+}
+
+
+
+fun RecipeUiState.removeImage(imageUri: Uri, contentResolver: ContentResolver) {
+    contentResolver.delete(imageUri, null, null)
+    photos.remove(imageUri)
 }
 
 fun RecipeUiState.toRecipe(): Recipe = Recipe(

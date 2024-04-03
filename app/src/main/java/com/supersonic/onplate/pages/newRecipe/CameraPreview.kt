@@ -16,6 +16,7 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.camera.view.PreviewView.ScaleType
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -61,6 +62,8 @@ import kotlin.coroutines.suspendCoroutine
 fun CameraCapture(
     modifier: Modifier = Modifier,
     photos: List<Uri> = emptyList(),
+    removePhoto: (Uri) -> Unit = {},
+    openImagePreview: () -> Unit,
     cameraSelector: CameraSelector = CameraSelector.DEFAULT_BACK_CAMERA,
     onBackClick: () -> Unit = {},
     onImageCaptured: (Uri) -> Unit,
@@ -95,15 +98,20 @@ fun CameraCapture(
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
 
+                val lastImage = photos.lastOrNull()
+
                 Surface(
                     modifier = Modifier
-                        .size(64.dp),
+                        .size(64.dp)
+                        .clickable {
+                            openImagePreview()
+                        },
                     shape = CircleShape,
                     border = BorderStroke(2.dp, MaterialTheme.colorScheme.outline)
                 ) {
                     AsyncImage(
                         model = ImageRequest.Builder(context)
-                            .data(photos.lastOrNull())
+                            .data(lastImage)
                             .crossfade(true)
                             .build(),
                         contentScale = ContentScale.Crop,
@@ -194,7 +202,8 @@ private fun takePhoto(
     context: Context,
     imageCapture: ImageCapture,
     executor: Executor,
-    onImageCaptured: (Uri) -> Unit,) {
+    onImageCaptured: (Uri) -> Unit,
+    ) {
 
     val appName = context.resources.getString(R.string.app_name)
     val name = "$appName ${SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSS", Locale.US)

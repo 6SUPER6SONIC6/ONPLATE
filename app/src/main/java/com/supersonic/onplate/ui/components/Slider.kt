@@ -1,6 +1,9 @@
 package com.supersonic.onplate.ui.components
 
 import android.net.Uri
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -14,7 +17,6 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
@@ -23,6 +25,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,13 +47,16 @@ import kotlinx.coroutines.launch
 fun HorizontalSlider(
     modifier: Modifier = Modifier,
     sliderList: List<Uri>,
+    selectedPhoto: (Uri) -> Unit = {},
+    initialPhoto: Int = 0,
     forwardIcon: ImageVector = Icons.Filled.KeyboardArrowRight,
     backwardIcon: ImageVector = Icons.Filled.KeyboardArrowLeft,
-    imageHeight : Dp = 220.dp
+    contentScale:  ContentScale = ContentScale.Fit,
+    imageHeight: Dp = 220.dp
 ) {
 
     val pagerState = rememberPagerState(
-        initialPage = 0,
+        initialPage = initialPhoto,
         initialPageOffsetFraction = 0f
     ) {
         sliderList.size
@@ -59,32 +65,49 @@ fun HorizontalSlider(
     val scope = rememberCoroutineScope()
 
     Box(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier,
+        contentAlignment = Alignment.Center
     ) {
-
         HorizontalPager(
-            modifier = modifier.align(Alignment.Center),
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.Center),
             state = pagerState,
             pageSize = PageSize.Fill,
 
-        ) {page ->
-            Box(modifier = modifier
-                .clip(RoundedCornerShape(8.dp)),){
+        ) {photo ->
+
+            val photoAlpha: Float by animateFloatAsState(
+                targetValue = if (pagerState.currentPage == photo) 1f else 0.2f,
+                animationSpec = tween(
+                    durationMillis = 500,
+                    easing = LinearEasing
+                ),
+                label = ""
+            )
+            selectedPhoto(sliderList[photo])
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.Center)
+                ){
                 AsyncImage(model = ImageRequest.Builder(LocalContext.current)
-                    .data(sliderList[page])
+                    .data(sliderList[photo])
                     .crossfade(true)
                     .build(),
                     contentDescription = null,
-                    contentScale = ContentScale.Crop,
+                    contentScale = contentScale,
                     modifier = modifier
-                        .height(imageHeight)
-                        .alpha(if (pagerState.currentPage == page) 1f else 0.5f))
+                        .alpha(photoAlpha)
+                )
             }
         }
 
-        IconButton(modifier = modifier
-            .align(Alignment.CenterStart)
-            .height(imageHeight),
+        IconButton(
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .height(imageHeight),
             colors = IconButtonDefaults.iconButtonColors(
                 contentColor = colorScheme.primary,
                 disabledContentColor = colorScheme.secondary),
@@ -93,13 +116,15 @@ fun HorizontalSlider(
                 scope.launch {
                     pagerState.animateScrollToPage(pagerState.currentPage - 1)
                 }
-            } ) {
+            }
+        ) {
             Icon(backwardIcon, contentDescription = "backward")
         }
 
-        IconButton(modifier = modifier
-            .align(Alignment.CenterEnd)
-            .height(imageHeight),
+        IconButton(
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .height(imageHeight),
             colors = IconButtonDefaults.iconButtonColors(
                 contentColor = colorScheme.primary,
                 disabledContentColor = colorScheme.secondary),
@@ -108,28 +133,30 @@ fun HorizontalSlider(
             scope.launch {
                 pagerState.animateScrollToPage(pagerState.currentPage + 1)
             }
-        } ) {
+        }
+        ) {
             Icon(forwardIcon, contentDescription = "forward")
         }
 
         Row(
-            modifier
+            modifier = Modifier
                 .height(16.dp)
                 .align(Alignment.BottomCenter),
         ) {
             repeat(sliderList.size) {
                 val color = if (pagerState.currentPage == it) colorScheme.primary else colorScheme.secondary
 
-                Box(modifier = modifier
-                    .padding(2.dp)
-                    .clip(CircleShape)
-                    .size(8.dp)
-                    .background(color)
-                    .clickable {
-                        scope.launch {
-                            pagerState.animateScrollToPage(it)
-                        }
-                    })
+                Box(
+                    modifier = Modifier
+                        .padding(2.dp)
+                        .clip(CircleShape)
+                        .size(8.dp)
+                        .background(color)
+                        .clickable {
+                            scope.launch {
+                                pagerState.animateScrollToPage(it)
+                            }
+                        })
                 }
             }
         }

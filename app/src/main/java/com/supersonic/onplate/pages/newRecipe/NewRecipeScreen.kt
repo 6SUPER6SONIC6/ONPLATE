@@ -21,6 +21,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -31,7 +33,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -53,6 +54,7 @@ import com.supersonic.onplate.models.RecipeUiState
 import com.supersonic.onplate.models.addEmptyIngredient
 import com.supersonic.onplate.models.addEmptyStep
 import com.supersonic.onplate.models.isValid
+import com.supersonic.onplate.models.removeImage
 import com.supersonic.onplate.models.removeIngredient
 import com.supersonic.onplate.models.removeStep
 import com.supersonic.onplate.models.updateIngredientValue
@@ -64,6 +66,7 @@ import com.supersonic.onplate.pages.newRecipe.ingredients.Ingredient
 import com.supersonic.onplate.pages.newRecipe.ingredients.IngredientsList
 import com.supersonic.onplate.ui.components.ContentCard
 import com.supersonic.onplate.ui.components.ContentDialog
+import com.supersonic.onplate.ui.components.HorizontalSlider
 import com.supersonic.onplate.ui.components.PrimaryButton
 import com.supersonic.onplate.ui.components.RecipeTextField
 import com.supersonic.onplate.ui.components.TopBar
@@ -76,7 +79,9 @@ object NewRecipeScreenDestination : NavigationDestination {
     override val titleRes = R.string.screenTitle_NewRecipe
 }
 
-private val openCamera: MutableState<Boolean> = mutableStateOf(false)
+private var openCamera by mutableStateOf(false)
+private var photoPreview by mutableStateOf(false)
+private var initialPhoto = 0
 
 @Composable
 fun NewRecipeScreen(
@@ -108,37 +113,118 @@ fun NewRecipeScreenBody(
     topBarTitle: String,
     onBackClick: () -> Unit,
     onSaveClick: () -> Unit,
-
 ) {
 
-    if (openCamera.value){
+    val contentResolver = LocalContext.current.contentResolver
 
-        CameraCapture(
-            modifier = modifier,
-            photos = recipeUiState.photos,
-            onBackClick = { openCamera.value = false},
-        ) { capturedImageUri ->
-            recipeUiState.photos.add(capturedImageUri)
+    when {
+        openCamera -> {
+            CameraCapture(
+                modifier = modifier,
+                photos = recipeUiState.photos,
+                openImagePreview = {
+                    initialPhoto = recipeUiState.photos.lastIndex
+                    openCamera = false
+                    photoPreview = true
+                },
+                onBackClick = { openCamera = false},
+            ) { capturedImageUri ->
+                recipeUiState.photos.add(capturedImageUri)
+            }
         }
 
-    } else {
+        photoPreview -> {
 
-        Scaffold(
-            topBar = { NewRecipeTopBar(
-                title = topBarTitle,
-                onBackClick
-            ) },
-            content = {
-                NewRecipeScreenContent(
-                    modifier = Modifier.padding(it),
-                    recipeUiState = recipeUiState,
-                    onRecipeValueChange = onRecipeValueChange,
-                    onSaveClick = onSaveClick
+            var currentPhotoUri: Uri? = null
+
+            Box(
+                modifier = modifier
+                    .fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                HorizontalSlider(
+                    sliderList = recipeUiState.photos,
+                    selectedPhoto = {currentPhotoUri = it},
+                    initialPhoto = initialPhoto,
+                    modifier = Modifier.fillMaxSize()
                 )
-            },
-        )
+
+                IconButton(
+                    onClick = {
+                    currentPhotoUri?.let { recipeUiState.removeImage(it, contentResolver) }
+                },
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp)
+                ) {
+                    Icon(imageVector = Icons.Outlined.Delete, contentDescription = null)
+                }
+
+                IconButton(
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(8.dp),
+                    onClick = {
+                    photoPreview = false
+                }) {
+                    Icon(imageVector = Icons.Outlined.ArrowBack, contentDescription = null)
+                }
+
+            }
+        }
+
+        else -> {
+            Scaffold(
+                topBar = { NewRecipeTopBar(
+                    title = topBarTitle,
+                    onBackClick
+                ) },
+                content = {
+                    NewRecipeScreenContent(
+                        modifier = Modifier.padding(it),
+                        recipeUiState = recipeUiState,
+                        onRecipeValueChange = onRecipeValueChange,
+                        onSaveClick = onSaveClick
+                    )
+                },
+            )
+        }
 
     }
+
+//    if (openCamera){
+//
+//        CameraCapture(
+//            modifier = modifier,
+//            photos = recipeUiState.photos,
+//            removePhoto = {
+//                recipeUiState.removeImage(it, contentResolver)
+//                          },
+//            onBackClick = { openCamera = false},
+//        ) { capturedImageUri ->
+//            recipeUiState.photos.add(capturedImageUri)
+//        }
+//
+//    } else {
+//
+//        Scaffold(
+//            topBar = { NewRecipeTopBar(
+//                title = topBarTitle,
+//                onBackClick
+//            ) },
+//            content = {
+//                NewRecipeScreenContent(
+//                    modifier = Modifier.padding(it),
+//                    recipeUiState = recipeUiState,
+//                    onRecipeValueChange = onRecipeValueChange,
+//                    onSaveClick = onSaveClick
+//                )
+//            },
+//        )
+//
+//    }
+
+
 
 }
 
@@ -382,10 +468,18 @@ private fun PhotosCard(
                 contentPadding = PaddingValues(vertical = 16.dp, horizontal = 8.dp)
             ) {
                 items(photos.size) { photo ->
+
+
+
                     Surface(
                         modifier = Modifier
                             .size(120.dp, 100.dp)
-                            .padding(4.dp),
+                            .padding(4.dp)
+                            .clickable {
+                                initialPhoto = photo
+                                photoPreview = true
+                                openCamera = false
+                            },
                         shape = RoundedCornerShape(8.dp),
                         border = BorderStroke(1.dp, colorScheme.onSecondaryContainer)
                     ) {
@@ -404,7 +498,10 @@ private fun PhotosCard(
                     Surface(
                         modifier = Modifier
                             .size(120.dp, 100.dp)
-                            .padding(4.dp),
+                            .padding(4.dp)
+                            .clickable {
+                                requestCameraPermission = true
+                            },
                         shape = RoundedCornerShape(8.dp),
                         border = BorderStroke(1.dp, colorScheme.onSecondaryContainer)
                     ){
@@ -417,9 +514,7 @@ private fun PhotosCard(
                                     Icons.Filled.Add,
                                     contentDescription = null,
                                     modifier = Modifier
-                                        .clickable {
-                                            requestCameraPermission = true
-                                        }
+
                                 )
                                 Text(text = "Add Photo")
                             }
@@ -455,7 +550,7 @@ private fun PhotosCard(
                 }
             },
             onCancelDialog = { requestCameraPermission = false },
-            onPermissionGranted = { openCamera.value = it }
+            onPermissionGranted = { openCamera = it }
         )
     }
 }
