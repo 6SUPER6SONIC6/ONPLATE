@@ -11,6 +11,8 @@ import com.supersonic.onplate.models.addEmptyStep
 import com.supersonic.onplate.models.isValid
 import com.supersonic.onplate.models.toRecipe
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 
 @HiltViewModel
@@ -20,6 +22,10 @@ class NewRecipeViewModel @Inject constructor(
 
     var recipeUiState by mutableStateOf(RecipeUiState())
         private set
+
+    private val _screenUiState = MutableStateFlow<NewRecipeUiState>(NewRecipeUiState.BaseContent)
+    val screenUiState = _screenUiState.asStateFlow()
+    private var previousScreenUiState: NewRecipeUiState? = null
 
     init {
         recipeUiState.addEmptyIngredient()
@@ -34,5 +40,19 @@ class NewRecipeViewModel @Inject constructor(
         if (recipeUiState.isValid()) {
             recipesRepository.insertRecipe(recipeUiState.toRecipe())
         }
+    }
+
+    fun openCamera() {
+        _screenUiState.value = NewRecipeUiState.Camera
+    }
+
+    fun openPhotoView(initialPhotoIndex: Int) {
+        previousScreenUiState = _screenUiState.value
+        _screenUiState.value = NewRecipeUiState.PhotoView(initialPhotoIndex)
+    }
+
+    fun navigateBack() {
+        _screenUiState.value = previousScreenUiState ?: NewRecipeUiState.BaseContent
+        previousScreenUiState = null
     }
 }

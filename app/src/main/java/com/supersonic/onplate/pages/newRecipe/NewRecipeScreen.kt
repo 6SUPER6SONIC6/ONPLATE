@@ -33,6 +33,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -79,22 +80,27 @@ object NewRecipeScreenDestination : NavigationDestination {
     override val titleRes = R.string.screenTitle_NewRecipe
 }
 
-private var openCamera by mutableStateOf(false)
-private var photoPreview by mutableStateOf(false)
-private var initialPhoto = 0
-
 @Composable
 fun NewRecipeScreen(
     viewModel: NewRecipeViewModel,
     onBackClick: () -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
+    val recipeUiState = viewModel.recipeUiState
 
     NewRecipeScreenBody(
         modifier = Modifier,
-        recipeUiState = viewModel.recipeUiState,
+        recipeUiState = recipeUiState,
         onRecipeValueChange = viewModel::updateUiState,
+        screenUiState = viewModel.screenUiState.collectAsState().value,
         topBarTitle = stringResource(NewRecipeScreenDestination.titleRes),
+        openPhotoView = {
+            viewModel.openPhotoView(it)
+        },
+        openCamera = { viewModel.openCamera() },
+        onNavigateBack = {
+            viewModel.navigateBack()
+        },
         onBackClick = onBackClick,
         onSaveClick = {
             coroutineScope.launch {
@@ -109,88 +115,146 @@ fun NewRecipeScreen(
 fun NewRecipeScreenBody(
     modifier: Modifier,
     recipeUiState: RecipeUiState,
+    screenUiState: NewRecipeUiState,
     onRecipeValueChange: (RecipeUiState) -> Unit,
     topBarTitle: String,
+    openPhotoView: (Int) -> Unit,
+    openCamera: () -> Unit,
+    onNavigateBack: () -> Unit,
     onBackClick: () -> Unit,
     onSaveClick: () -> Unit,
 ) {
 
     val contentResolver = LocalContext.current.contentResolver
 
-    when {
-        openCamera -> {
+    when(screenUiState) {
+        is NewRecipeUiState.Camera -> {
             CameraCapture(
                 modifier = modifier,
                 photos = recipeUiState.photos,
-                openImagePreview = {
-                    initialPhoto = recipeUiState.photos.lastIndex
-                    openCamera = false
-                    photoPreview = true
-                },
-                onBackClick = { openCamera = false},
+                openImagePreview = { openPhotoView(recipeUiState.photos.lastIndex) },
+                onBackClick = onNavigateBack,
             ) { capturedImageUri ->
                 recipeUiState.photos.add(capturedImageUri)
             }
         }
 
-        photoPreview -> {
+        is NewRecipeUiState.PhotoView -> {
+            val initialPhotoIndex = screenUiState.initialPhotoIndex
+            PhotoView(
+                modifier = modifier,
+                recipeUiState = recipeUiState,
+                initialPhotoIndex = initialPhotoIndex,
+                onNavigateBack = onNavigateBack,
+                onDeleteClick = {uri ->
+                    recipeUiState.removeImage(uri, contentResolver)
+                })
 
-            var currentPhotoUri: Uri? = null
-
-            Box(
-                modifier = modifier
-                    .fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                HorizontalSlider(
-                    sliderList = recipeUiState.photos,
-                    selectedPhoto = {currentPhotoUri = it},
-                    initialPhoto = initialPhoto,
-                    modifier = Modifier.fillMaxSize()
-                )
-
-                IconButton(
-                    onClick = {
-                    currentPhotoUri?.let { recipeUiState.removeImage(it, contentResolver) }
-                },
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(8.dp)
-                ) {
-                    Icon(imageVector = Icons.Outlined.Delete, contentDescription = null)
-                }
-
-                IconButton(
-                    modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .padding(8.dp),
-                    onClick = {
-                    photoPreview = false
-                }) {
-                    Icon(imageVector = Icons.Outlined.ArrowBack, contentDescription = null)
-                }
-
-            }
         }
 
-        else -> {
+        NewRecipeUiState.BaseContent -> {
             Scaffold(
                 topBar = { NewRecipeTopBar(
                     title = topBarTitle,
                     onBackClick
                 ) },
-                content = {
+                content = { paddingValues ->
                     NewRecipeScreenContent(
-                        modifier = Modifier.padding(it),
+                        modifier = Modifier.padding(paddingValues),
                         recipeUiState = recipeUiState,
                         onRecipeValueChange = onRecipeValueChange,
+                        onPhotoViewButtonClick = { openPhotoView(it) },
+                        onCameraButtonClick = openCamera,
                         onSaveClick = onSaveClick
                     )
                 },
             )
         }
-
     }
+
+//    when {
+//        openCamera -> {
+//            CameraCapture(
+//                modifier = modifier,
+//                photos = recipeUiState.photos,
+//                openImagePreview = {
+//                    initialPhoto = recipeUiState.photos.lastIndex
+//                    openCamera = false
+//                    photoPreview = true
+//                    isPhotoPreviewOpenedFromCamera = true
+//                },
+//                onBackClick = {
+//                    openCamera = false
+//                    isPhotoPreviewOpenedFromCamera = false
+//                },
+//            ) { capturedImageUri ->
+//                recipeUiState.photos.add(capturedImageUri)
+//            }
+//        }
+//
+//        photoPreview -> {
+//
+//            var currentPhotoUri: Uri? = null
+//
+//            Box(
+//                modifier = modifier
+//                    .fillMaxSize(),
+//                contentAlignment = Alignment.Center
+//            ) {
+//                HorizontalSlider(
+//                    sliderList = recipeUiState.photos,
+//                    selectedPhoto = {currentPhotoUri = it},
+//                    initialPhoto = initialPhoto,
+//                    modifier = Modifier.fillMaxSize()
+//                )
+//
+//                IconButton(
+//                    onClick = {
+//                    currentPhotoUri?.let { recipeUiState.removeImage(it, contentResolver) }
+//                },
+//                    modifier = Modifier
+//                        .align(Alignment.TopEnd)
+//                        .padding(8.dp)
+//                ) {
+//                    Icon(imageVector = Icons.Outlined.Delete, contentDescription = null)
+//                }
+//
+//                IconButton(
+//                    modifier = Modifier
+//                        .align(Alignment.TopStart)
+//                        .padding(8.dp),
+//                    onClick = {
+//                    if (isPhotoPreviewOpenedFromCamera){
+//                        photoPreview = !photoPreview
+//                        openCamera = !openCamera
+//                    } else {
+//                        photoPreview = !photoPreview
+//                    }
+//                }) {
+//                    Icon(imageVector = Icons.Outlined.ArrowBack, contentDescription = null)
+//                }
+//
+//            }
+//        }
+//
+//        else -> {
+//            Scaffold(
+//                topBar = { NewRecipeTopBar(
+//                    title = topBarTitle,
+//                    onBackClick
+//                ) },
+//                content = {
+//                    NewRecipeScreenContent(
+//                        modifier = Modifier.padding(it),
+//                        recipeUiState = recipeUiState,
+//                        onRecipeValueChange = onRecipeValueChange,
+//                        onSaveClick = onSaveClick
+//                    )
+//                },
+//            )
+//        }
+//
+//    }
 
 //    if (openCamera){
 //
@@ -228,6 +292,50 @@ fun NewRecipeScreenBody(
 
 }
 
+@Composable
+fun PhotoView(
+    modifier: Modifier,
+    recipeUiState: RecipeUiState,
+    initialPhotoIndex: Int,
+    onNavigateBack: () -> Unit,
+    onDeleteClick: (Uri) -> Unit,
+) {
+
+    var currentPhotoUri: Uri? = null
+
+    Box(
+        modifier = modifier
+            .fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        HorizontalSlider(
+            sliderList = recipeUiState.photos,
+            selectedPhoto = {currentPhotoUri = it},
+            initialPhoto = initialPhotoIndex,
+            modifier = Modifier.fillMaxSize()
+        )
+
+        IconButton(
+            onClick = { currentPhotoUri?.let { onDeleteClick(it) } },
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(8.dp)
+        ) {
+            Icon(imageVector = Icons.Outlined.Delete, contentDescription = null)
+        }
+
+        IconButton(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(8.dp),
+            onClick = onNavigateBack
+        ) {
+            Icon(imageVector = Icons.Outlined.ArrowBack, contentDescription = null)
+        }
+
+    }
+}
+
 
 @Composable
 private fun NewRecipeTopBar(
@@ -245,6 +353,8 @@ fun NewRecipeScreenContent(
     modifier: Modifier,
     recipeUiState: RecipeUiState,
     onRecipeValueChange: (RecipeUiState) -> Unit,
+    onCameraButtonClick: () -> Unit,
+    onPhotoViewButtonClick: (Int) -> Unit,
     onSaveClick: () -> Unit,
 ) {
         Column(
@@ -254,7 +364,11 @@ fun NewRecipeScreenContent(
             OverviewCard(recipeUiState = recipeUiState, onValueChange = onRecipeValueChange)
             IngredientsCard(recipeUiState = recipeUiState)
             DirectionsCard(recipeUiState = recipeUiState)
-            PhotosCard(photos = recipeUiState.photos)
+            PhotosCard(
+                photos = recipeUiState.photos,
+                onCameraButtonClick = onCameraButtonClick,
+                onPhotoViewButtonClick = {onPhotoViewButtonClick(it)}
+                )
             PrimaryButton(text = "Save",
                 enabled = recipeUiState.isValid(),
                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 16.dp),
@@ -456,7 +570,9 @@ private fun DirectionsCard(
 
 @Composable
 private fun PhotosCard(
-    photos: List<Uri> = emptyList()
+    photos: List<Uri> = emptyList(),
+    onCameraButtonClick: () -> Unit,
+    onPhotoViewButtonClick: (Int) -> Unit,
 ) {
 
     var requestCameraPermission by remember { mutableStateOf(false) }
@@ -468,17 +584,12 @@ private fun PhotosCard(
                 contentPadding = PaddingValues(vertical = 16.dp, horizontal = 8.dp)
             ) {
                 items(photos.size) { photo ->
-
-
-
                     Surface(
                         modifier = Modifier
                             .size(120.dp, 100.dp)
                             .padding(4.dp)
                             .clickable {
-                                initialPhoto = photo
-                                photoPreview = true
-                                openCamera = false
+                                onPhotoViewButtonClick(photo)
                             },
                         shape = RoundedCornerShape(8.dp),
                         border = BorderStroke(1.dp, colorScheme.onSecondaryContainer)
@@ -550,7 +661,10 @@ private fun PhotosCard(
                 }
             },
             onCancelDialog = { requestCameraPermission = false },
-            onPermissionGranted = { openCamera = it }
+            onPermissionGranted = { if (it){
+                onCameraButtonClick()
+            }
+            }
         )
     }
 }
@@ -561,7 +675,7 @@ private fun NewRecipeScreenContentPreview() {
     ONPLATETheme {
         NewRecipeScreenContent(modifier = Modifier, recipeUiState = RecipeUiState(
             ingredients = mutableListOf(Ingredient()), directions = mutableListOf(Step())
-        ), onRecipeValueChange = {}) {}
+        ), onRecipeValueChange = {}, onCameraButtonClick = {}, onPhotoViewButtonClick = {}) {}
     }
 }
 
@@ -587,6 +701,6 @@ private fun IngredientsCardPreview() {
 @Composable
 private fun PhotosCardPreview() {
     ONPLATETheme {
-        PhotosCard()
+        PhotosCard(onCameraButtonClick = {}, onPhotoViewButtonClick = {})
     }
 }

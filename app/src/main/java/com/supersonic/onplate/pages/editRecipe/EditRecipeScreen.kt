@@ -1,6 +1,7 @@
 package com.supersonic.onplate.pages.editRecipe
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -22,13 +23,18 @@ fun EditRecipeScreen(
     onBackClick: () -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
+    val recipeUiState = viewModel.recipeUiState
 
     NewRecipeScreenBody(
         modifier = Modifier,
-        recipeUiState = viewModel.recipeUiState,
+        recipeUiState = recipeUiState,
         onRecipeValueChange = viewModel::updateUiState,
+        screenUiState = viewModel.screenUiState.collectAsState().value,
         onBackClick = onBackClick,
         topBarTitle = stringResource(EditRecipeScreenDestination.titleRes),
+        openCamera = { viewModel.openCamera() },
+        openPhotoView = {viewModel.openPhotoView(recipeUiState.photos.lastIndex)},
+        onNavigateBack = {viewModel.navigateBack()},
         onSaveClick = {
             coroutineScope.launch {
                 viewModel.updateRecipe()
