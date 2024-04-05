@@ -245,13 +245,15 @@ private fun DirectionsCard(directionsList: List<Step>) {
 
 @Composable
 private fun DeleteConfirmationDialog(
-    onDeleteConfirm: () -> Unit, onDeleteCancel: () -> Unit
+    onDeleteConfirm: () -> Unit,
+    onDeleteCancel: () -> Unit
 ) {
     ContentDialog(
         title = "Delete",
         onConfirm = onDeleteConfirm,
         onCancel = onDeleteCancel,
-        icon = { Icon(Icons.Outlined.Delete, contentDescription = null, modifier = Modifier.size(46.dp)) }) {
+        icon = { Icon(Icons.Outlined.Delete, contentDescription = null, modifier = Modifier.size(46.dp)) }
+    ) {
         Text(text = "Do you wanna delete the recipe?")
     }
 }

@@ -33,7 +33,7 @@ fun EditRecipeScreen(
         onBackClick = onBackClick,
         topBarTitle = stringResource(EditRecipeScreenDestination.titleRes),
         openCamera = { viewModel.openCamera() },
-        openPhotoView = {viewModel.openPhotoView(recipeUiState.photos.lastIndex)},
+        openPhotoView = {viewModel.openPhotoView(it)},
         onNavigateBack = {viewModel.navigateBack()},
         onSaveClick = {
             coroutineScope.launch {

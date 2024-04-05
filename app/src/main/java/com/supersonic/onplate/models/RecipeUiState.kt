@@ -70,6 +70,13 @@ fun RecipeUiState.removeImage(imageUri: Uri, contentResolver: ContentResolver) {
     photos.remove(imageUri)
 }
 
+fun RecipeUiState.removeMultiplyImages(imageUriList: List<Uri>, contentResolver: ContentResolver) {
+    imageUriList.forEach {uri ->
+        contentResolver.delete(uri, null, null)
+    }
+    photos.clear()
+}
+
 fun RecipeUiState.toRecipe(): Recipe = Recipe(
     id = id,
     title = title,

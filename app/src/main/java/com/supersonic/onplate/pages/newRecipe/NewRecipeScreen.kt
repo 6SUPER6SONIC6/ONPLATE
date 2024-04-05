@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -87,12 +88,13 @@ fun NewRecipeScreen(
 ) {
     val coroutineScope = rememberCoroutineScope()
     val recipeUiState = viewModel.recipeUiState
+    val screenUiState = viewModel.screenUiState.collectAsState().value
 
     NewRecipeScreenBody(
         modifier = Modifier,
         recipeUiState = recipeUiState,
         onRecipeValueChange = viewModel::updateUiState,
-        screenUiState = viewModel.screenUiState.collectAsState().value,
+        screenUiState = screenUiState,
         topBarTitle = stringResource(NewRecipeScreenDestination.titleRes),
         openPhotoView = {
             viewModel.openPhotoView(it)
@@ -125,7 +127,27 @@ fun NewRecipeScreenBody(
     onSaveClick: () -> Unit,
 ) {
 
+    var openNavigateBackConfirmationDialog by remember { mutableStateOf(false) }
     val contentResolver = LocalContext.current.contentResolver
+
+    BackHandler {
+        if (screenUiState == NewRecipeUiState.BaseContent){
+            openNavigateBackConfirmationDialog = true
+        } else {
+            onNavigateBack()
+        }
+    }
+
+    if (openNavigateBackConfirmationDialog){
+        NavigateBackConfirmationDialog(
+            onConfirmNavigationBack = onBackClick,
+            onCancelNavigationBack = { openNavigateBackConfirmationDialog = false }
+        )
+    }
+
+
+
+
 
     when(screenUiState) {
         is NewRecipeUiState.Camera -> {
@@ -154,9 +176,12 @@ fun NewRecipeScreenBody(
 
         NewRecipeUiState.BaseContent -> {
             Scaffold(
-                topBar = { NewRecipeTopBar(
+                topBar = {
+                    NewRecipeTopBar(
                     title = topBarTitle,
-                    onBackClick
+                        onBackClick = {
+                            openNavigateBackConfirmationDialog = true
+                        }
                 ) },
                 content = { paddingValues ->
                     NewRecipeScreenContent(
@@ -171,124 +196,7 @@ fun NewRecipeScreenBody(
             )
         }
     }
-
-//    when {
-//        openCamera -> {
-//            CameraCapture(
-//                modifier = modifier,
-//                photos = recipeUiState.photos,
-//                openImagePreview = {
-//                    initialPhoto = recipeUiState.photos.lastIndex
-//                    openCamera = false
-//                    photoPreview = true
-//                    isPhotoPreviewOpenedFromCamera = true
-//                },
-//                onBackClick = {
-//                    openCamera = false
-//                    isPhotoPreviewOpenedFromCamera = false
-//                },
-//            ) { capturedImageUri ->
-//                recipeUiState.photos.add(capturedImageUri)
-//            }
-//        }
-//
-//        photoPreview -> {
-//
-//            var currentPhotoUri: Uri? = null
-//
-//            Box(
-//                modifier = modifier
-//                    .fillMaxSize(),
-//                contentAlignment = Alignment.Center
-//            ) {
-//                HorizontalSlider(
-//                    sliderList = recipeUiState.photos,
-//                    selectedPhoto = {currentPhotoUri = it},
-//                    initialPhoto = initialPhoto,
-//                    modifier = Modifier.fillMaxSize()
-//                )
-//
-//                IconButton(
-//                    onClick = {
-//                    currentPhotoUri?.let { recipeUiState.removeImage(it, contentResolver) }
-//                },
-//                    modifier = Modifier
-//                        .align(Alignment.TopEnd)
-//                        .padding(8.dp)
-//                ) {
-//                    Icon(imageVector = Icons.Outlined.Delete, contentDescription = null)
-//                }
-//
-//                IconButton(
-//                    modifier = Modifier
-//                        .align(Alignment.TopStart)
-//                        .padding(8.dp),
-//                    onClick = {
-//                    if (isPhotoPreviewOpenedFromCamera){
-//                        photoPreview = !photoPreview
-//                        openCamera = !openCamera
-//                    } else {
-//                        photoPreview = !photoPreview
-//                    }
-//                }) {
-//                    Icon(imageVector = Icons.Outlined.ArrowBack, contentDescription = null)
-//                }
-//
-//            }
-//        }
-//
-//        else -> {
-//            Scaffold(
-//                topBar = { NewRecipeTopBar(
-//                    title = topBarTitle,
-//                    onBackClick
-//                ) },
-//                content = {
-//                    NewRecipeScreenContent(
-//                        modifier = Modifier.padding(it),
-//                        recipeUiState = recipeUiState,
-//                        onRecipeValueChange = onRecipeValueChange,
-//                        onSaveClick = onSaveClick
-//                    )
-//                },
-//            )
-//        }
-//
-//    }
-
-//    if (openCamera){
-//
-//        CameraCapture(
-//            modifier = modifier,
-//            photos = recipeUiState.photos,
-//            removePhoto = {
-//                recipeUiState.removeImage(it, contentResolver)
-//                          },
-//            onBackClick = { openCamera = false},
-//        ) { capturedImageUri ->
-//            recipeUiState.photos.add(capturedImageUri)
-//        }
-//
-//    } else {
-//
-//        Scaffold(
-//            topBar = { NewRecipeTopBar(
-//                title = topBarTitle,
-//                onBackClick
-//            ) },
-//            content = {
-//                NewRecipeScreenContent(
-//                    modifier = Modifier.padding(it),
-//                    recipeUiState = recipeUiState,
-//                    onRecipeValueChange = onRecipeValueChange,
-//                    onSaveClick = onSaveClick
-//                )
-//            },
-//        )
-//
-//    }
-
-
+    
 
 }
 
@@ -666,6 +574,22 @@ private fun PhotosCard(
             }
             }
         )
+    }
+}
+
+@Composable
+private fun NavigateBackConfirmationDialog(
+    onConfirmNavigationBack: () -> Unit,
+    onCancelNavigationBack: () -> Unit
+) {
+    ContentDialog(
+        title = "Navigate back?",
+        confirmButtonText = "Navigate back",
+        cancelButtonText = "Stay",
+        onConfirm = onConfirmNavigationBack,
+        onCancel = onCancelNavigationBack
+    ) {
+        Text(text = "Are you sure you want to go back?")
     }
 }
 
