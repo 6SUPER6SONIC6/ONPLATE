@@ -65,9 +65,12 @@ fun RecipeUiState.addEmptyStep() {
 
 
 
-fun RecipeUiState.removeImage(imageUri: Uri, contentResolver: ContentResolver) {
-    contentResolver.delete(imageUri, null, null)
-    photos.remove(imageUri)
+fun RecipeUiState.removeImage(imageUri: Uri?, contentResolver: ContentResolver) {
+    if (imageUri != null) {
+        contentResolver.delete(imageUri, null, null)
+        photos.remove(imageUri)
+    }
+
 }
 
 fun RecipeUiState.removeMultiplyImages(imageUriList: List<Uri>, contentResolver: ContentResolver) {

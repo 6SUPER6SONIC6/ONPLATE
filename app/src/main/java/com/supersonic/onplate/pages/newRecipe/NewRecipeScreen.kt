@@ -91,7 +91,7 @@ fun NewRecipeScreen(
     val screenUiState = viewModel.screenUiState.collectAsState().value
 
     NewRecipeScreenBody(
-        modifier = Modifier,
+        modifier = Modifier.fillMaxSize(),
         recipeUiState = recipeUiState,
         onRecipeValueChange = viewModel::updateUiState,
         screenUiState = screenUiState,
@@ -128,8 +128,11 @@ fun NewRecipeScreenBody(
 ) {
 
     var openNavigateBackConfirmationDialog by remember { mutableStateOf(false) }
+    var openDeletePhotoDialog by remember { mutableStateOf(false) }
     val contentResolver = LocalContext.current.contentResolver
+    var imageToDelete: Uri? by remember { mutableStateOf(null) }
 
+    //Handling back presses through BackHandler to correctly change the screen state
     BackHandler {
         if (screenUiState == NewRecipeUiState.BaseContent){
             openNavigateBackConfirmationDialog = true
@@ -138,17 +141,28 @@ fun NewRecipeScreenBody(
         }
     }
 
-    if (openNavigateBackConfirmationDialog){
-        NavigateBackConfirmationDialog(
-            onConfirmNavigationBack = onBackClick,
-            onCancelNavigationBack = { openNavigateBackConfirmationDialog = false }
-        )
+    when {
+        openNavigateBackConfirmationDialog -> {
+            NavigateBackConfirmationDialog(
+                onConfirmNavigationBack = onBackClick,
+                onCancelNavigationBack = { openNavigateBackConfirmationDialog = false }
+            )
+        }
+        openDeletePhotoDialog -> {
+            DeletePhotoDialog(
+                onDeleteConfirm = {
+                    recipeUiState.removeImage(imageToDelete, contentResolver)
+                    openDeletePhotoDialog = false
+                    if (recipeUiState.photos.isEmpty()) {
+                        onNavigateBack()
+                    }
+                },
+                onDeleteCancel = { openDeletePhotoDialog = false }
+            )
+        }
     }
 
-
-
-
-
+    //Screen state
     when(screenUiState) {
         is NewRecipeUiState.Camera -> {
             CameraCapture(
@@ -168,8 +182,9 @@ fun NewRecipeScreenBody(
                 recipeUiState = recipeUiState,
                 initialPhotoIndex = initialPhotoIndex,
                 onNavigateBack = onNavigateBack,
-                onDeleteClick = {uri ->
-                    recipeUiState.removeImage(uri, contentResolver)
+                onDeleteClick = { uri ->
+                    imageToDelete = uri
+                    openDeletePhotoDialog = true
                 })
 
         }
@@ -590,6 +605,21 @@ private fun NavigateBackConfirmationDialog(
         onCancel = onCancelNavigationBack
     ) {
         Text(text = "Are you sure you want to go back?")
+    }
+}
+
+@Composable
+private fun DeletePhotoDialog(
+    onDeleteConfirm: () -> Unit,
+    onDeleteCancel: () -> Unit
+) {
+    ContentDialog(
+        title = stringResource(R.string.delete_photo_dialog_title),
+        icon = Icons.Outlined.Delete,
+        onConfirm = onDeleteConfirm, 
+        onCancel = onDeleteCancel,
+    ) {
+        Text(text = "Delete this photo?")
     }
 }
 

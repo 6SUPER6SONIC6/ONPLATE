@@ -23,4 +23,5 @@
     <string name="textField_placeholder_description">Recipe is great for batch cooking so you can save extra portions in the freezer.</string>
     <string name="textField_placeholder_cooking_time">40 minutes</string>
     <string name="screenTitle_editRecipe">Edit Recipe</string>
+    <string name="delete_photo_dialog_title">Delete photo?</string>
 </resources>

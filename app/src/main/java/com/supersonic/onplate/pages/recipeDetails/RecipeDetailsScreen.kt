@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -104,7 +103,7 @@ private fun RecipeTopBar(onBackClick: () -> Unit, navigateToEditRecipe: () -> Un
         })
 
     if (openDeleteConfirmationDialog){
-        DeleteConfirmationDialog(
+        DeleteRecipeDialog(
             onDeleteConfirm = {
                 openDeleteConfirmationDialog = false
                 onDelete()
@@ -244,7 +243,7 @@ private fun DirectionsCard(directionsList: List<Step>) {
 }
 
 @Composable
-private fun DeleteConfirmationDialog(
+private fun DeleteRecipeDialog(
     onDeleteConfirm: () -> Unit,
     onDeleteCancel: () -> Unit
 ) {
@@ -252,7 +251,7 @@ private fun DeleteConfirmationDialog(
         title = "Delete",
         onConfirm = onDeleteConfirm,
         onCancel = onDeleteCancel,
-        icon = { Icon(Icons.Outlined.Delete, contentDescription = null, modifier = Modifier.size(46.dp)) }
+        icon = Icons.Outlined.Delete
     ) {
         Text(text = "Do you wanna delete the recipe?")
     }

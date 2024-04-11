@@ -20,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -36,7 +37,7 @@ fun ContentDialog(
     onCancel: () -> Unit,
     cancelButtonText: String? = null,
     confirmButtonEnabled: Boolean = true,
-    icon: @Composable (() -> Unit)? = null,
+    icon: ImageVector? = null,
     body: @Composable () -> Unit
 ) {
     Dialog(onDismissRequest = onCancel, properties = DialogProperties(usePlatformDefaultWidth = false)) {
@@ -57,7 +58,7 @@ fun ContentDialog(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 if (icon != null) {
-                    icon()
+                    Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(46.dp))
                 }
 
                 if (title != null) {
@@ -108,13 +109,7 @@ fun ContentDialog(
 @Composable
 private fun ContentDialogPreview() {
     ONPLATETheme {
-        ContentDialog(title = "Delete", onCancel = {}, onConfirm = {}, icon = {
-            Icon(
-                Icons.Outlined.Delete,
-                modifier = Modifier.size(32.dp),
-                contentDescription = null
-            )
-        }
+        ContentDialog(title = "Delete", onCancel = {}, onConfirm = {}, icon = Icons.Outlined.Delete
         ) {
             Text(text = "Do you wanna delete the recipe?")
         }

@@ -15,22 +15,22 @@ import androidx.camera.core.UseCase
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.camera.view.PreviewView.ScaleType
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.AddCircle
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -62,7 +62,6 @@ import kotlin.coroutines.suspendCoroutine
 fun CameraCapture(
     modifier: Modifier = Modifier,
     photos: List<Uri> = emptyList(),
-    removePhoto: (Uri) -> Unit = {},
     openImagePreview: () -> Unit,
     cameraSelector: CameraSelector = CameraSelector.DEFAULT_BACK_CAMERA,
     onBackClick: () -> Unit = {},
@@ -83,7 +82,9 @@ fun CameraCapture(
 
 
             CameraPreview(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .align(Alignment.Center),
+                scaleType = ScaleType.FIT_CENTER,
                 onUseCase = {
                     previewUseCase = it
                 }
@@ -93,25 +94,29 @@ fun CameraCapture(
                 modifier = Modifier
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter)
-//                    .background(MaterialTheme.colorScheme.background, RoundedCornerShape(8.dp))
                     .padding(vertical = 32.dp, horizontal = 16.dp),
-                horizontalArrangement = Arrangement.SpaceAround
+                horizontalArrangement = Arrangement.SpaceAround,
+                verticalAlignment = Alignment.CenterVertically
             ) {
 
                 val lastImage = photos.lastOrNull()
+                val placeholder = R.mipmap.ic_launcher
 
                 Surface(
                     modifier = Modifier
-                        .size(64.dp)
+                        .size(48.dp)
                         .clickable {
-                            openImagePreview()
+                            if (lastImage != null){
+                                openImagePreview()
+                            }
                         },
                     shape = CircleShape,
-                    border = BorderStroke(2.dp, MaterialTheme.colorScheme.outline)
+//                    border = BorderStroke(2.dp, MaterialTheme.colorScheme.outline)
                 ) {
+
                     AsyncImage(
                         model = ImageRequest.Builder(context)
-                            .data(lastImage)
+                            .data(lastImage ?: placeholder)
                             .crossfade(true)
                             .build(),
                         contentScale = ContentScale.Crop,
@@ -120,8 +125,11 @@ fun CameraCapture(
 
                 }
 
-                IconButton(
-                    onClick = {
+                Box(modifier = Modifier
+                    .size(64.dp)
+                    .background(MaterialTheme.colorScheme.background, CircleShape)
+                    .border(3.dp, MaterialTheme.colorScheme.primary, CircleShape)
+                    .clickable {
                         coroutineScope.launch {
                             takePhoto(
                                 context = context,
@@ -130,17 +138,20 @@ fun CameraCapture(
                                 onImageCaptured = onImageCaptured
                             )
                         }
-                    },
-                    modifier = Modifier
-                        .size(64.dp)
-                ) {
-                    Icon(Icons.Outlined.AddCircle, contentDescription = null)
-                }
+                    }
+                )
 
                 IconButton(
                     onClick = onBackClick,
+                    colors = IconButtonDefaults.iconButtonColors(
+                        contentColor = MaterialTheme.colorScheme.background
+                    ),
                     modifier = Modifier
-                    .size(64.dp)
+                        .background(
+                            MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                            CircleShape
+                        )
+                        .size(48.dp)
                 ){
                   Icon(
                       imageVector = if (photos.isEmpty()) Icons.Outlined.Close else Icons.Outlined.Check,
@@ -206,7 +217,7 @@ private fun takePhoto(
     ) {
 
     val appName = context.resources.getString(R.string.app_name)
-    val name = "$appName ${SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSS", Locale.US)
+    val name = "$appName ${SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSS", Locale.getDefault())
         .format(System.currentTimeMillis())}"
 
     val contentValues = ContentValues().apply {
@@ -245,7 +256,8 @@ private suspend fun Context.getCameraProvider(): ProcessCameraProvider = suspend
     ProcessCameraProvider.getInstance(this).also { future ->
         future.addListener({
             continuation.resume(future.get())
-        }, executor)
+        }, executor
+        )
     }
 }
 
