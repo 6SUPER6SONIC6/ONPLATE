@@ -19,7 +19,6 @@ import javax.inject.Inject
 class NewRecipeViewModel @Inject constructor(
     private val recipesRepository: RecipesRepository
 ) : ViewModel() {
-
     var recipeUiState by mutableStateOf(RecipeUiState())
         private set
 

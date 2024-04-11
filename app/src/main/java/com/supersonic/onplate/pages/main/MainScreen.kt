@@ -2,6 +2,7 @@ package com.supersonic.onplate.pages.main
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -93,6 +94,7 @@ private fun MainTopBar() {
             }
         })
 }
+
 @Composable
 private fun MainScreenContent(
     modifier: Modifier,
@@ -104,13 +106,14 @@ private fun MainScreenContent(
         modifier = modifier
     ) {
         if (recipeList.isEmpty()) {
-            Text(text = "You haven't saved any recipes yet.",
+            Text(
+                text = "You haven't saved any recipes yet.",
                 textAlign = TextAlign.Center,
                 style = typography.titleLarge)
         } else {
             RecipeList(
                 recipeList = recipeList,
-                onRecipeClick = { onRecipeClick(it.id) }
+                onRecipeClick = { onRecipeClick(it.id) },
             )
         }
     }
@@ -118,13 +121,19 @@ private fun MainScreenContent(
 
 @Composable
 private fun RecipeList(
-    recipeList: List<Recipe>, onRecipeClick: (Recipe) -> Unit, modifier: Modifier = Modifier
+    recipeList: List<Recipe>,
+    onRecipeClick: (Recipe) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     LazyColumn(modifier = modifier) {
         items(recipeList, key = { it.id }){ recipe ->
-            RecipeCard(recipe = recipe){
-                onRecipeClick.invoke(recipe)
-            }
+            RecipeCard(
+                recipe = recipe,
+                onItemClick = { onRecipeClick(it) },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+
         }
     }
 }

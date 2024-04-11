@@ -37,6 +37,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -280,6 +281,8 @@ fun NewRecipeScreenContent(
     onPhotoViewButtonClick: (Int) -> Unit,
     onSaveClick: () -> Unit,
 ) {
+
+
         Column(
             modifier = modifier
                 .verticalScroll(rememberScrollState())
@@ -493,7 +496,7 @@ private fun DirectionsCard(
 
 @Composable
 private fun PhotosCard(
-    photos: List<Uri> = emptyList(),
+    photos: List<Uri> = mutableStateListOf(),
     onCameraButtonClick: () -> Unit,
     onPhotoViewButtonClick: (Int) -> Unit,
 ) {

@@ -33,12 +33,14 @@ class Converters {
 
     @TypeConverter
     fun fromUriList(uriList: List<Uri?>): String {
-        return uriList.joinToString(separator = ",") { it.toString() }
+        return uriList.filterNotNull().joinToString(separator = ",") { it.toString() }
     }
 
     @TypeConverter
     fun toUriList(uriListString: String): List<Uri> {
-        return uriListString.split(",").map { Uri.parse(it) }
+        return uriListString.split(",").mapNotNull { uriString ->
+            if (uriString.isNotBlank()) Uri.parse(uriString) else null
+        }
     }
 
 

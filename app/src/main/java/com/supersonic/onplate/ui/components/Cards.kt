@@ -25,10 +25,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.supersonic.onplate.models.Recipe
 import com.supersonic.onplate.ui.theme.ONPLATETheme
 import com.supersonic.onplate.utils.MockUtils
@@ -43,37 +47,28 @@ fun RecipeCard(
         modifier = modifier
             .padding(12.dp)
             .fillMaxWidth()
-            .height(180.dp)
+            .height(360.dp)
             .clickable { onItemClick(recipe) },
         shape = CardDefaults.shape,
         elevation = CardDefaults.cardElevation(8.dp),
         colors = CardDefaults.cardColors(colorScheme.secondaryContainer)
     ) {
 
-/*
-        Surface(
-            shape = RoundedCornerShape(8.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(180.dp),
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(colorScheme.tertiary)
-            ) {
+            if (recipe.photos.isNotEmpty()){
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
-                        .data("")
+                        .data(recipe.photos.first())
                         .crossfade(true)
                         .build(),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
-                    modifier = modifier.fillMaxSize()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
                 )
             }
-        }
-*/
+
+
         Box(
             contentAlignment = Alignment.TopCenter,
             modifier = Modifier

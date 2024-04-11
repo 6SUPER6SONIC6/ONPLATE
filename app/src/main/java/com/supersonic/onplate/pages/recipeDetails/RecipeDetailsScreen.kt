@@ -79,7 +79,9 @@ fun RecipeDetailsScreen(
             )
         },
         content = {
-            RecipeScreenContent(modifier = Modifier.padding(it), recipe = uiState.value.toRecipe())
+            RecipeScreenContent(
+                modifier = Modifier.padding(it),
+                recipe = uiState.value.toRecipe())
         }
     )
 
@@ -122,7 +124,10 @@ private fun RecipeScreenContent(modifier: Modifier, recipe: Recipe) {
         modifier = modifier
             .verticalScroll(rememberScrollState())
     ) {
-        PhotosCard(recipe.photos)
+
+        if (recipe.photos.isNotEmpty()) {
+            PhotosCard(recipe.photos)
+        }
         OverviewCard(recipe.title, recipe.description, recipe.cookingTimeString)
         IngredientsCard(recipe.ingredients)
         DirectionsCard(recipe.directions)
@@ -132,7 +137,9 @@ private fun RecipeScreenContent(modifier: Modifier, recipe: Recipe) {
 @Composable
 private fun PhotosCard(photosList: List<Uri> = emptyList()) {
 
-    ContentCard(cardTitle = stringResource(R.string.cardTitle_photos), modifier = Modifier.padding(8.dp).height(220.dp)) {
+    ContentCard(cardTitle = stringResource(R.string.cardTitle_photos), modifier = Modifier
+        .padding(8.dp)
+        .height(220.dp)) {
         HorizontalSlider(
             sliderList = photosList,
             contentScale = ContentScale.Crop,
