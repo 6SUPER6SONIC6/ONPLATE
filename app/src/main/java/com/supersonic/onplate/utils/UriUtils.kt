@@ -24,5 +24,5 @@ fun validateUriList(list: List<Uri>, contentResolver: ContentResolver) : List<Ur
         }
     }
 
-    return validatedList
+    return list.filter { validateUri(it, contentResolver) }
 }

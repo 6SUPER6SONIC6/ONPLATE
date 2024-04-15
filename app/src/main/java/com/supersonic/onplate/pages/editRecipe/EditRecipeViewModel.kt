@@ -1,6 +1,7 @@
 package com.supersonic.onplate.pages.editRecipe
 
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
@@ -33,6 +34,9 @@ class EditRecipeViewModel @Inject constructor(
     val screenUiState = _screenUiState.asStateFlow()
     private var previousScreenUiState: NewRecipeUiState? = null
 
+    var scrollPosition by mutableIntStateOf(0)
+        private set
+
     private val recipeId: Int = checkNotNull(savedStateHandle[EditRecipeScreenDestination.recipeIdArg])
 
     init {
@@ -46,6 +50,10 @@ class EditRecipeViewModel @Inject constructor(
 
     fun updateUiState(newRecipeUiState: RecipeUiState) {
         recipeUiState = newRecipeUiState.copy()
+    }
+
+    fun updateScrollPosition(updatedScrollPosition: Int){
+        scrollPosition = updatedScrollPosition
     }
 
     suspend fun updateRecipe() {

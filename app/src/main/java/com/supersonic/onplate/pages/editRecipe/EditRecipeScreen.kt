@@ -29,6 +29,8 @@ fun EditRecipeScreen(
         modifier = Modifier,
         recipeUiState = recipeUiState,
         onRecipeValueChange = viewModel::updateUiState,
+        scrollPosition = viewModel.scrollPosition,
+        onScrollPositionChange = viewModel::updateScrollPosition,
         screenUiState = viewModel.screenUiState.collectAsState().value,
         onBackClick = onBackClick,
         topBarTitle = stringResource(EditRecipeScreenDestination.titleRes),

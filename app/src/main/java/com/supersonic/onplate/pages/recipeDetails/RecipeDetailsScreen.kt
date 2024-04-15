@@ -42,7 +42,7 @@ import com.supersonic.onplate.pages.newRecipe.directions.Step
 import com.supersonic.onplate.pages.newRecipe.ingredients.Ingredient
 import com.supersonic.onplate.ui.components.ContentCard
 import com.supersonic.onplate.ui.components.ContentDialog
-import com.supersonic.onplate.ui.components.HorizontalSlider
+import com.supersonic.onplate.ui.components.HorizontalImageSlider
 import com.supersonic.onplate.ui.components.TopBar
 import com.supersonic.onplate.ui.theme.ONPLATETheme
 import com.supersonic.onplate.utils.MockUtils
@@ -135,12 +135,12 @@ private fun RecipeScreenContent(modifier: Modifier, recipe: Recipe) {
 }
 
 @Composable
-private fun PhotosCard(photosList: List<Uri> = emptyList()) {
+private fun PhotosCard(photosList: List<Uri> = listOf()) {
 
     ContentCard(cardTitle = stringResource(R.string.cardTitle_photos), modifier = Modifier
         .padding(8.dp)
         .height(220.dp)) {
-        HorizontalSlider(
+        HorizontalImageSlider(
             sliderList = photosList,
             contentScale = ContentScale.Crop,
             modifier = Modifier

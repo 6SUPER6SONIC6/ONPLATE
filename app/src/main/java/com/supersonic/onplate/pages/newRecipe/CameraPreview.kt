@@ -62,7 +62,7 @@ import kotlin.coroutines.suspendCoroutine
 @Composable
 fun CameraCapture(
     modifier: Modifier = Modifier,
-    photos: List<Uri> = emptyList(),
+    imageToPreview: Uri? = null,
     openImagePreview: () -> Unit,
     cameraSelector: CameraSelector = CameraSelector.DEFAULT_BACK_CAMERA,
     onBackClick: () -> Unit = {},
@@ -100,14 +100,14 @@ fun CameraCapture(
                 verticalAlignment = Alignment.CenterVertically
             ) {
 
-                val lastImage = photos.lastOrNull()
+
                 val placeholder = R.mipmap.ic_launcher
 
                 Surface(
                     modifier = Modifier
                         .size(48.dp)
                         .clickable {
-                            if (lastImage != null){
+                            if (imageToPreview != null){
                                 openImagePreview()
                             }
                         },
@@ -117,7 +117,7 @@ fun CameraCapture(
 
                     AsyncImage(
                         model = ImageRequest.Builder(context)
-                            .data(lastImage ?: placeholder)
+                            .data(imageToPreview ?: placeholder)
                             .crossfade(true)
                             .build(),
                         contentScale = ContentScale.Crop,
@@ -126,7 +126,8 @@ fun CameraCapture(
 
                 }
 
-                Box(modifier = Modifier
+                Box(
+                    modifier = Modifier
                     .size(64.dp)
                     .background(MaterialTheme.colorScheme.background, CircleShape)
                     .border(3.dp, MaterialTheme.colorScheme.primary, CircleShape)
@@ -149,13 +150,13 @@ fun CameraCapture(
                     ),
                     modifier = Modifier
                         .background(
-                            MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                            MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
                             CircleShape
                         )
                         .size(48.dp)
                 ){
                   Icon(
-                      imageVector = if (photos.isEmpty()) Icons.Outlined.Close else Icons.Outlined.Check,
+                      imageVector = if (imageToPreview == null) Icons.Outlined.Close else Icons.Outlined.Check,
                       modifier = Modifier.size(32.dp),
                       contentDescription = null
                   )

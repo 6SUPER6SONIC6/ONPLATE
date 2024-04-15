@@ -44,7 +44,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun HorizontalSlider(
+fun HorizontalImageSlider(
     modifier: Modifier = Modifier,
     sliderList: List<Uri>,
     selectedPhoto: (Uri) -> Unit = {},
@@ -98,7 +98,8 @@ fun HorizontalSlider(
                     .build(),
                     contentDescription = null,
                     contentScale = contentScale,
-                    modifier = modifier
+                    modifier = Modifier
+                        .fillMaxWidth()
                         .alpha(photoAlpha)
                 )
             }
@@ -179,7 +180,7 @@ val photos = listOf(
 fun SliderPreview() {
     ONPLATETheme {
         ContentCard(cardTitle = "Photos") {
-            HorizontalSlider(sliderList = emptyList())
+            HorizontalImageSlider(sliderList = emptyList())
         }
 
 
