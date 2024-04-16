@@ -16,7 +16,8 @@ data class RecipeUiState(
     val photos: MutableList<Uri> = mutableStateListOf(),
     val cookingTimeHour: Int = 0,
     val cookingTimeMinute: Int = 0,
-    var cookingTimeString: String = ""
+    var cookingTimeString: String = "",
+    var favorite: Boolean = false
 )
 
 fun RecipeUiState.updateIngredientValue(id: Int, value: String) {
@@ -89,7 +90,8 @@ fun RecipeUiState.toRecipe(): Recipe = Recipe(
     photos = photos,
     cookingTimeHour = cookingTimeHour,
     cookingTimeMinute = cookingTimeMinute,
-    cookingTimeString = cookingTimeString
+    cookingTimeString = cookingTimeString,
+    favorite = favorite
 )
 fun Recipe.toRecipeUiState() : RecipeUiState = RecipeUiState(
     id = id,
@@ -100,7 +102,8 @@ fun Recipe.toRecipeUiState() : RecipeUiState = RecipeUiState(
     photos = photos.toMutableStateList(),
     cookingTimeHour = cookingTimeHour,
     cookingTimeMinute = cookingTimeMinute,
-    cookingTimeString = cookingTimeString
+    cookingTimeString = cookingTimeString,
+    favorite = favorite
 )
 
 fun RecipeUiState.isValid() : Boolean {

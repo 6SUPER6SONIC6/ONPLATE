@@ -1,6 +1,7 @@
 package com.supersonic.onplate.models
 
 import android.net.Uri
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
@@ -21,4 +22,6 @@ data class Recipe(
     val cookingTimeHour: Int,
     val cookingTimeMinute: Int,
     val cookingTimeString: String,
+    @ColumnInfo(defaultValue = "false")
+    val favorite: Boolean,
 )
