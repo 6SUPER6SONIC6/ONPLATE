@@ -47,7 +47,7 @@ fun RecipeCard(
         modifier = modifier
             .padding(12.dp)
             .fillMaxWidth()
-            .height(360.dp)
+            .height(if (recipe.photos.isNotEmpty()) 360.dp else 180.dp)
             .clickable { onItemClick(recipe) },
         shape = CardDefaults.shape,
         elevation = CardDefaults.cardElevation(8.dp),
