@@ -1,8 +1,9 @@
 package com.supersonic.onplate.pages.main
 
 import android.widget.Toast
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -10,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -20,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -29,11 +32,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.supersonic.onplate.R
 import com.supersonic.onplate.models.Recipe
+import com.supersonic.onplate.models.RecipeUiState
+import com.supersonic.onplate.models.toRecipeUiState
 import com.supersonic.onplate.navigation.NavigationDestination
 import com.supersonic.onplate.ui.components.Fab
 import com.supersonic.onplate.ui.components.RecipeCard
 import com.supersonic.onplate.ui.components.TopBar
 import com.supersonic.onplate.ui.theme.ONPLATETheme
+import kotlinx.coroutines.launch
 
 object MainScreenDestination : NavigationDestination {
     override val route = "main"
@@ -44,21 +50,28 @@ object MainScreenDestination : NavigationDestination {
 fun MainScreen(
     viewModel: MainScreenViewModel,
     onNavigationToRecipe: (Int) -> Unit,
+    onNavigationToFavorite: () -> Unit,
     onNavigationToAddRecipe: () -> Unit,
 ) {
 
     val mainScreenUiState by viewModel.mainScreenUiState.collectAsState()
+    val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
-            MainTopBar()
+            MainTopBar(
+                onShowFavoritesClick = onNavigationToFavorite
+            )
         },
         content = {
-            MainScreenContent(
-                modifier = Modifier.padding(it),
-                recipeList = mainScreenUiState.recipeList,
-                onRecipeClick = onNavigationToRecipe,
-            )
+                MainScreenContent(
+                    modifier = Modifier.padding(it),
+                    recipeList = mainScreenUiState.recipeList,
+                    onRecipeClick = onNavigationToRecipe,
+                    onFavoriteClick = {coroutineScope.launch {
+                        viewModel.updateRecipe(it)
+                    }}
+                )
         },
         floatingActionButtonPosition = FabPosition.End,
         floatingActionButton = {
@@ -75,7 +88,9 @@ fun MainScreen(
 }
 
 @Composable
-private fun MainTopBar() {
+private fun MainTopBar(
+    onShowFavoritesClick: () -> Unit
+) {
     val context = LocalContext.current
 
     TopBar(
@@ -87,6 +102,9 @@ private fun MainTopBar() {
             }) {
                 Icon(Icons.Filled.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary)
             }
+            IconButton(onClick = onShowFavoritesClick) {
+                Icon(imageVector = Icons.Outlined.FavoriteBorder, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary)
+            }
             IconButton(onClick = {
                 Toast.makeText(context, "Settings", Toast.LENGTH_SHORT).show()
             }) {
@@ -96,10 +114,11 @@ private fun MainTopBar() {
 }
 
 @Composable
-private fun MainScreenContent(
+fun MainScreenContent(
     modifier: Modifier,
     recipeList: List<Recipe>,
     onRecipeClick: (Int) -> Unit,
+    onFavoriteClick: (RecipeUiState) -> Unit
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -113,24 +132,28 @@ private fun MainScreenContent(
         } else {
             RecipeList(
                 recipeList = recipeList,
-                onRecipeClick = { onRecipeClick(it.id) },
+                onFavoriteClick = { onFavoriteClick(it) },
+                onRecipeClick = { onRecipeClick(it) },
             )
         }
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun RecipeList(
     recipeList: List<Recipe>,
-    onRecipeClick: (Recipe) -> Unit,
+    onRecipeClick: (Int) -> Unit,
+    onFavoriteClick: (RecipeUiState) -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(modifier = modifier) {
         items(recipeList, key = { it.id }){ recipe ->
             RecipeCard(
-                recipe = recipe,
+                recipe = recipe.toRecipeUiState(),
                 onItemClick = { onRecipeClick(it) },
-                modifier = Modifier.fillMaxWidth()
+                onFavoriteClick = { onFavoriteClick(it) },
+                modifier = Modifier.fillMaxSize().animateItemPlacement()
             )
 
 
@@ -143,7 +166,8 @@ private fun RecipeList(
 fun MainScreenPreview() {
     ONPLATETheme {
         MainScreen(viewModel = hiltViewModel<MainScreenViewModel>(),
-            onNavigationToRecipe = { }
+            onNavigationToRecipe = { },
+            onNavigationToFavorite = { }
         ) { }
 
     }

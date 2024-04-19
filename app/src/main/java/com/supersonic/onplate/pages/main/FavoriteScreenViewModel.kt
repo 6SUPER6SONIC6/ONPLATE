@@ -15,21 +15,17 @@ import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 @HiltViewModel
-class MainScreenViewModel @Inject constructor(
+class FavoriteScreenViewModel @Inject constructor(
     private val recipesRepository: RecipesRepository
-) : ViewModel() {
+): ViewModel() {
 
-    val mainScreenUiState: StateFlow<MainScreenUiState> =
-        recipesRepository.getAllRecipesStream().map { MainScreenUiState(it) }
+    val favoriteScreenUiState: StateFlow<FavoriteScreenUiState> =
+        recipesRepository.getFavoritesRecipesStream().map { FavoriteScreenUiState(it) }
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS),
-                initialValue = MainScreenUiState()
+                initialValue = FavoriteScreenUiState()
             )
-
-
-
-
 
     companion object {
         private const val TIMEOUT_MILLIS = 5_000L
@@ -40,6 +36,7 @@ class MainScreenViewModel @Inject constructor(
             recipesRepository.updateRecipe(recipeUiState.toRecipe())
         }
     }
+
 }
 
-data class MainScreenUiState(val recipeList: List<Recipe> = listOf())
+data class FavoriteScreenUiState(val recipeList: List<Recipe> = listOf())

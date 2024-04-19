@@ -12,6 +12,9 @@ import androidx.navigation.navArgument
 import com.supersonic.onplate.pages.editRecipe.EditRecipeScreen
 import com.supersonic.onplate.pages.editRecipe.EditRecipeScreenDestination
 import com.supersonic.onplate.pages.editRecipe.EditRecipeViewModel
+import com.supersonic.onplate.pages.main.FavoriteScreenViewModel
+import com.supersonic.onplate.pages.main.FavoritesScreen
+import com.supersonic.onplate.pages.main.FavoritesScreenDestination
 import com.supersonic.onplate.pages.main.MainScreen
 import com.supersonic.onplate.pages.main.MainScreenDestination
 import com.supersonic.onplate.pages.main.MainScreenViewModel
@@ -59,8 +62,21 @@ fun RootAppNavigation(
                 viewModel = viewModel,
                 onNavigationToRecipe = { navController.navigate("${RecipeScreenDestination.route}/${it}") },
                 onNavigationToAddRecipe = { navController.navigate(route = NewRecipeScreenDestination.route) },
+                onNavigationToFavorite = { navController.navigate(FavoritesScreenDestination.route) }
             )
 
+
+        }
+
+        // Favorite Screen
+        composable(route = FavoritesScreenDestination.route) {
+            val viewModel = hiltViewModel<FavoriteScreenViewModel>()
+
+            FavoritesScreen(
+                viewModel = viewModel,
+                onNavigationToRecipe = { navController.navigate("${RecipeScreenDestination.route}/${it}") },
+                onBackClick = { navController.navigateUp() }
+                )
 
         }
 

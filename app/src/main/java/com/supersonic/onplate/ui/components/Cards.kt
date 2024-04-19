@@ -14,10 +14,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.Surface
@@ -25,6 +28,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
@@ -33,22 +37,24 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.supersonic.onplate.models.Recipe
+import com.supersonic.onplate.models.RecipeUiState
+import com.supersonic.onplate.models.toRecipeUiState
 import com.supersonic.onplate.ui.theme.ONPLATETheme
 import com.supersonic.onplate.utils.MockUtils
 
 @Composable
 fun RecipeCard(
     modifier: Modifier = Modifier,
-    recipe: Recipe,
-    onItemClick: (Recipe) -> Unit,
+    recipe: RecipeUiState,
+    onFavoriteClick: (RecipeUiState) -> Unit,
+    onItemClick: (Int) -> Unit,
 ) {
     Card(
         modifier = modifier
             .padding(12.dp)
             .fillMaxWidth()
             .height(if (recipe.photos.isNotEmpty()) 360.dp else 180.dp)
-            .clickable { onItemClick(recipe) },
+            .clickable { onItemClick(recipe.id) },
         shape = CardDefaults.shape,
         elevation = CardDefaults.cardElevation(8.dp),
         colors = CardDefaults.cardColors(colorScheme.secondaryContainer)
@@ -111,13 +117,23 @@ fun RecipeCard(
             )
 
 
-            
-            Icon(Icons.Outlined.FavoriteBorder, contentDescription = null,
+
+            IconButton(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(8.dp)
-                    .size(22.dp)
-                    .clickable { })
+                    .size(22.dp),
+                colors = IconButtonDefaults.iconButtonColors(
+                    contentColor = Color.Red
+                ),
+                onClick = { onFavoriteClick(recipe.copy(favorite = !recipe.favorite)) }
+            ) {
+                Icon(
+                    imageVector = if (recipe.favorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                    contentDescription = null,
+                    modifier = Modifier
+                )
+            }
         }
     }
 }
@@ -166,7 +182,7 @@ private fun RecipeCardPreview() {
     val recipe = MockUtils.loadMockRecipes()[0]
 
     ONPLATETheme {
-        RecipeCard(recipe = recipe, onItemClick = {})
+        RecipeCard(recipe = recipe.toRecipeUiState(), onItemClick = {}, onFavoriteClick = {})
     }
 }
 
@@ -179,8 +195,8 @@ private fun ContentCardPreview() {
                 Text(
                     text = "45 min",
                     modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(8.dp)
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp)
                 )
 
                 Column(
