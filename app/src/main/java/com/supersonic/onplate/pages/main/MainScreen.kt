@@ -22,7 +22,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -55,18 +58,23 @@ fun MainScreen(
 ) {
 
     val mainScreenUiState by viewModel.mainScreenUiState.collectAsState()
+    val allRecipesList = mainScreenUiState.recipeList
+    val favoriteRecipesList = allRecipesList.filter { it.favorite }
+    var showFavorite by remember {
+        mutableStateOf(false)
+    }
     val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
             MainTopBar(
-                onShowFavoritesClick = onNavigationToFavorite
+                onShowFavoritesClick = { showFavorite = !showFavorite }
             )
         },
-        content = {
-                MainScreenContent(
-                    modifier = Modifier.padding(it),
-                    recipeList = mainScreenUiState.recipeList,
+        content = { paddingValues ->
+            MainScreenContent(
+                    modifier = Modifier.padding(paddingValues),
+                    recipeList = if (showFavorite) favoriteRecipesList else allRecipesList,
                     onRecipeClick = onNavigationToRecipe,
                     onFavoriteClick = {coroutineScope.launch {
                         viewModel.updateRecipe(it)
@@ -153,7 +161,9 @@ private fun RecipeList(
                 recipe = recipe.toRecipeUiState(),
                 onItemClick = { onRecipeClick(it) },
                 onFavoriteClick = { onFavoriteClick(it) },
-                modifier = Modifier.fillMaxSize().animateItemPlacement()
+                modifier = Modifier
+                    .fillMaxSize()
+                    .animateItemPlacement()
             )
 
 
