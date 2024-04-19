@@ -53,7 +53,6 @@ object MainScreenDestination : NavigationDestination {
 fun MainScreen(
     viewModel: MainScreenViewModel,
     onNavigationToRecipe: (Int) -> Unit,
-    onNavigationToFavorite: () -> Unit,
     onNavigationToAddRecipe: () -> Unit,
 ) {
 
@@ -176,8 +175,7 @@ private fun RecipeList(
 fun MainScreenPreview() {
     ONPLATETheme {
         MainScreen(viewModel = hiltViewModel<MainScreenViewModel>(),
-            onNavigationToRecipe = { },
-            onNavigationToFavorite = { }
+            onNavigationToRecipe = { }
         ) { }
 
     }
