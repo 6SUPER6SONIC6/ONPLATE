@@ -4,13 +4,13 @@ import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.FabPosition
@@ -41,6 +41,7 @@ import com.supersonic.onplate.models.toRecipeUiState
 import com.supersonic.onplate.navigation.NavigationDestination
 import com.supersonic.onplate.ui.components.Fab
 import com.supersonic.onplate.ui.components.RecipeCard
+import com.supersonic.onplate.ui.components.RecipeTextField
 import com.supersonic.onplate.ui.components.TopBar
 import com.supersonic.onplate.ui.theme.ONPLATETheme
 import kotlinx.coroutines.launch
@@ -57,8 +58,7 @@ fun MainScreen(
     onNavigationToAddRecipe: () -> Unit,
 ) {
 
-    val mainScreenUiState by viewModel.mainScreenUiState.collectAsState()
-    val allRecipesList = mainScreenUiState.recipeList
+    val allRecipesList by viewModel.searchResults.collectAsState()
     val favoriteRecipesList = allRecipesList.filter { it.favorite }
     var showFavorite by remember {
         mutableStateOf(false)
@@ -69,7 +69,15 @@ fun MainScreen(
         topBar = {
             MainTopBar(
                 onShowFavoritesClick = { showFavorite = !showFavorite },
-                favoriteClicked = showFavorite
+                favoriteClicked = showFavorite,
+                search = {
+                    RecipeTextField(
+                        value = viewModel.searchQuery,
+                        onValueChange = {viewModel.onSearchQueryChange(it)},
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
             )
         },
         content = { paddingValues ->
@@ -101,15 +109,22 @@ fun MainScreen(
 private fun MainTopBar(
     onShowFavoritesClick: () -> Unit,
     favoriteClicked: Boolean = false,
+    search: @Composable() (() -> Unit)? = null
 ) {
     val context = LocalContext.current
+    var searchEnabled by remember {
+        mutableStateOf(false)
+    }
 
     TopBar(
         title = stringResource(MainScreenDestination.titleRes),
+        search = search,
+        searchEnabled = searchEnabled,
         isEnableBackIcon = false,
         actions = {
             //Search
             IconButton(onClick = {
+                searchEnabled = !searchEnabled
                 Toast.makeText(context, "Search", Toast.LENGTH_SHORT).show()
             }) {
                 Icon(Icons.Filled.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary)
@@ -123,13 +138,15 @@ private fun MainTopBar(
                 )
             }
             //Settings
-            IconButton(onClick = {
-                Toast.makeText(context, "Settings", Toast.LENGTH_SHORT).show()
-            }) {
-                Icon(Icons.Filled.Settings, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary)
-            }
+//            IconButton(onClick = {
+//                Toast.makeText(context, "Settings", Toast.LENGTH_SHORT).show()
+//            }) {
+//                Icon(Icons.Filled.Settings, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary)
+//            }
         })
 }
+
+
 
 @Composable
 fun MainScreenContent(

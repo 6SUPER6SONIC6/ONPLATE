@@ -24,18 +24,25 @@ import com.supersonic.onplate.ui.theme.ONPLATETheme
 @Composable
 fun TopBar(
     title: String,
+    search: @Composable() (() -> Unit)? = null,
+    searchEnabled: Boolean = false,
     onBackClick: () -> Unit = {},
     isEnableBackIcon: Boolean = true,
     actions: @Composable RowScope.() -> Unit = {}
 ) {
     CenterAlignedTopAppBar(
-        title = { Text(
-            text = title,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            color = colorScheme.onPrimary,
-            style = typography.titleLarge
-        )
+        title = { if (!searchEnabled) {
+            Text(
+                text = title,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                color = colorScheme.onPrimary,
+                style = typography.titleLarge
+            )
+        } else {
+            search?.invoke()
+        }
+
     },
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(colorScheme.primary),
         navigationIcon = {
