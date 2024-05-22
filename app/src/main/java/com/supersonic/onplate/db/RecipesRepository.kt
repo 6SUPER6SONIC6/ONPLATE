@@ -17,7 +17,5 @@ class RecipesRepository @Inject constructor(private val recipeDao: RecipeDao) {
 
     suspend fun updateRecipe(recipe: Recipe) = recipeDao.updateRecipe(recipe)
 
-    fun getFavoritesRecipesStream(): Flow<List<Recipe>> = recipeDao.getFavorites()
-
 
 }

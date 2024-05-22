@@ -26,7 +26,4 @@ interface RecipeDao {
 
     @Query("SELECT * from recipes")
     fun getAllRecipes(): Flow<List<Recipe>>
-
-    @Query("SELECT * from recipes WHERE favorite = true")
-    fun getFavorites(): Flow<List<Recipe>>
 }

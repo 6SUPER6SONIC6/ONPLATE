@@ -159,18 +159,21 @@ fun ContentCard(
                 .padding(top = 16.dp)
                 .border(1.dp, colorScheme.onSecondaryContainer, RoundedCornerShape(8.dp))
                 .background(colorScheme.secondaryContainer, RoundedCornerShape(8.dp)),
-            content = content)
+            content = content
+        )
         Surface(
             modifier = Modifier
             .align(Alignment.TopCenter),
             color =  colorScheme.onSecondaryContainer,
-            shape = RoundedCornerShape(4.dp)) {
+            shape = RoundedCornerShape(4.dp)
+        ) {
             Text(
                 text = cardTitle,
                 modifier = Modifier
                     .padding(start = 4.dp, end = 4.dp),
                 style = typography.titleLarge,
-                color = colorScheme.surface)
+                color = colorScheme.surface
+            )
         }
     }
 }

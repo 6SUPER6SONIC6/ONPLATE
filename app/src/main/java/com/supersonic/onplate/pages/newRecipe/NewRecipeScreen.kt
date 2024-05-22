@@ -178,9 +178,10 @@ fun NewRecipeScreenBody(
                 imageToPreview = recipeUiState.photos.lastOrNull(),
                 openImagePreview = { openPhotoView(recipeUiState.photos.lastIndex) },
                 onBackClick = onNavigateBack,
-            ) { capturedImageUri ->
+                onImageCaptured = { capturedImageUri ->
                 recipeUiState.photos.add(capturedImageUri)
             }
+            )
         }
 
         is NewRecipeUiState.PhotoView -> {
@@ -193,7 +194,8 @@ fun NewRecipeScreenBody(
                 onDeleteClick = { uri ->
                     imageToDelete = uri
                     openDeletePhotoDialog = true
-                })
+                }
+            )
 
         }
 

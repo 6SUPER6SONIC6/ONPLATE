@@ -11,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
@@ -67,12 +68,14 @@ fun MainScreen(
     Scaffold(
         topBar = {
             MainTopBar(
-                onShowFavoritesClick = { showFavorite = !showFavorite }
+                onShowFavoritesClick = { showFavorite = !showFavorite },
+                favoriteClicked = showFavorite
             )
         },
         content = { paddingValues ->
             MainScreenContent(
-                    modifier = Modifier.padding(paddingValues),
+                    modifier = Modifier
+                        .padding(paddingValues),
                     recipeList = if (showFavorite) favoriteRecipesList else allRecipesList,
                     onRecipeClick = onNavigationToRecipe,
                     onFavoriteClick = {coroutineScope.launch {
@@ -96,7 +99,8 @@ fun MainScreen(
 
 @Composable
 private fun MainTopBar(
-    onShowFavoritesClick: () -> Unit
+    onShowFavoritesClick: () -> Unit,
+    favoriteClicked: Boolean = false,
 ) {
     val context = LocalContext.current
 
@@ -104,14 +108,21 @@ private fun MainTopBar(
         title = stringResource(MainScreenDestination.titleRes),
         isEnableBackIcon = false,
         actions = {
+            //Search
             IconButton(onClick = {
                 Toast.makeText(context, "Search", Toast.LENGTH_SHORT).show()
             }) {
                 Icon(Icons.Filled.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary)
             }
+            //Favorite
             IconButton(onClick = onShowFavoritesClick) {
-                Icon(imageVector = Icons.Outlined.FavoriteBorder, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary)
+                Icon(
+                    imageVector = if (favoriteClicked) Icons.Outlined.Favorite else Icons.Outlined.FavoriteBorder,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
             }
+            //Settings
             IconButton(onClick = {
                 Toast.makeText(context, "Settings", Toast.LENGTH_SHORT).show()
             }) {
@@ -141,6 +152,8 @@ fun MainScreenContent(
                 recipeList = recipeList,
                 onFavoriteClick = { onFavoriteClick(it) },
                 onRecipeClick = { onRecipeClick(it) },
+                modifier = Modifier
+                    .fillMaxSize()
             )
         }
     }
