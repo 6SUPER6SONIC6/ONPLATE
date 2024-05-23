@@ -9,14 +9,18 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material.icons.outlined.List
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.MaterialTheme.typography
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,6 +32,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -39,7 +44,6 @@ import com.supersonic.onplate.models.toRecipeUiState
 import com.supersonic.onplate.navigation.NavigationDestination
 import com.supersonic.onplate.ui.components.Fab
 import com.supersonic.onplate.ui.components.RecipeCard
-import com.supersonic.onplate.ui.components.RecipeTextField
 import com.supersonic.onplate.ui.components.TopBar
 import com.supersonic.onplate.ui.theme.ONPLATETheme
 import kotlinx.coroutines.launch
@@ -58,9 +62,13 @@ fun MainScreen(
 
     val allRecipesList by viewModel.searchResults.collectAsState()
     val favoriteRecipesList = allRecipesList.filter { it.favorite }
+
     var showFavorite by remember {
         mutableStateOf(false)
     }
+
+    val searchEnabled by viewModel.searchEnabled.collectAsState()
+
     val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
@@ -68,11 +76,32 @@ fun MainScreen(
             MainTopBar(
                 onShowFavoritesClick = { showFavorite = !showFavorite },
                 favoriteClicked = showFavorite,
+                onSearchClick = { viewModel.onToggleSearch() },
+                searchEnabled = searchEnabled,
                 search = {
-                    RecipeTextField(
+                    OutlinedTextField(
                         value = viewModel.searchQuery,
                         onValueChange = {viewModel.onSearchQueryChange(it)},
                         singleLine = true,
+                        trailingIcon = {
+                            //Search filters button
+                            IconButton(onClick = {}) {
+                                Icon(Icons.Outlined.List, contentDescription = null, tint = colorScheme.onPrimary)
+                            }},
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            focusedBorderColor = Color.Transparent,
+                            unfocusedBorderColor = Color.Transparent,
+                            focusedTextColor = colorScheme.onPrimary,
+                            unfocusedTextColor = colorScheme.onPrimary,
+                            cursorColor = colorScheme.onPrimary
+                        ),
+                        placeholder = {
+                            Text(
+                            text = "Search...",
+                                color = colorScheme.background
+                            ) },
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -107,12 +136,10 @@ fun MainScreen(
 private fun MainTopBar(
     onShowFavoritesClick: () -> Unit,
     favoriteClicked: Boolean = false,
+    onSearchClick: () -> Unit,
+    searchEnabled: Boolean = false,
     search: @Composable (() -> Unit)? = null
 ) {
-    var searchEnabled by remember {
-        mutableStateOf(false)
-    }
-
     TopBar(
         title = stringResource(MainScreenDestination.titleRes),
         search = search,
@@ -120,17 +147,22 @@ private fun MainTopBar(
         isEnableBackIcon = false,
         actions = {
             //Search
-            IconButton(onClick = {
-                searchEnabled = !searchEnabled
-            }) {
-                Icon(Icons.Filled.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary)
+            IconButton(
+                onClick = onSearchClick
+            ) {
+                if (searchEnabled){
+                    Icon(Icons.Filled.Close, contentDescription = null, tint = colorScheme.onPrimary)
+                } else {
+                    Icon(Icons.Filled.Search, contentDescription = null, tint = colorScheme.onPrimary)
+                }
+
             }
             //Favorite
             IconButton(onClick = onShowFavoritesClick) {
                 Icon(
                     imageVector = if (favoriteClicked) Icons.Outlined.Favorite else Icons.Outlined.FavoriteBorder,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onPrimary
+                    tint = colorScheme.onPrimary
                 )
             }
             //Settings
@@ -151,6 +183,7 @@ fun MainScreenContent(
     onRecipeClick: (Int) -> Unit,
     onFavoriteClick: (RecipeUiState) -> Unit
 ) {
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier

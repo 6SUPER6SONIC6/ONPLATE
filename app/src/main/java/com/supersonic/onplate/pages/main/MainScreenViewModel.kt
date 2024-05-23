@@ -13,8 +13,10 @@ import com.supersonic.onplate.models.isValid
 import com.supersonic.onplate.models.toRecipe
 import com.supersonic.onplate.models.toRecipeUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
@@ -28,6 +30,9 @@ class MainScreenViewModel @Inject constructor(
 
     var searchQuery by mutableStateOf("")
         private set
+
+    private val _searchEnabled = MutableStateFlow(false)
+    val searchEnabled = _searchEnabled.asStateFlow()
 
     val searchResults: StateFlow<List<Recipe>> =
         snapshotFlow { searchQuery }
@@ -52,6 +57,14 @@ class MainScreenViewModel @Inject constructor(
 
     fun onSearchQueryChange(newQuery: String) {
         searchQuery = newQuery
+    }
+
+    fun onToggleSearch(){
+        when{
+            searchQuery.isNotEmpty() -> onSearchQueryChange("")
+            searchQuery.isEmpty() -> _searchEnabled.value = !_searchEnabled.value
+        }
+
     }
 
     suspend fun updateRecipe(recipeUiState: RecipeUiState) {
