@@ -1,6 +1,5 @@
 package com.supersonic.onplate.pages.main
 
-import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -29,7 +28,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -109,9 +107,8 @@ fun MainScreen(
 private fun MainTopBar(
     onShowFavoritesClick: () -> Unit,
     favoriteClicked: Boolean = false,
-    search: @Composable() (() -> Unit)? = null
+    search: @Composable (() -> Unit)? = null
 ) {
-    val context = LocalContext.current
     var searchEnabled by remember {
         mutableStateOf(false)
     }
@@ -125,7 +122,6 @@ private fun MainTopBar(
             //Search
             IconButton(onClick = {
                 searchEnabled = !searchEnabled
-                Toast.makeText(context, "Search", Toast.LENGTH_SHORT).show()
             }) {
                 Icon(Icons.Filled.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary)
             }

@@ -17,7 +17,8 @@ data class RecipeUiState(
     val cookingTimeHour: Int = 0,
     val cookingTimeMinute: Int = 0,
     var cookingTimeString: String = "",
-    var favorite: Boolean = false
+    var favorite: Boolean = false,
+    val searchText: String = ""
 )
 
 fun RecipeUiState.updateIngredientValue(id: Int, value: String) {
@@ -103,7 +104,8 @@ fun Recipe.toRecipeUiState() : RecipeUiState = RecipeUiState(
     cookingTimeHour = cookingTimeHour,
     cookingTimeMinute = cookingTimeMinute,
     cookingTimeString = cookingTimeString,
-    favorite = favorite
+    favorite = favorite,
+    searchText = title.plus(ingredients.joinToString(separator = "") { it.value })
 )
 
 fun RecipeUiState.isValid() : Boolean {

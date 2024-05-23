@@ -11,6 +11,7 @@ import com.supersonic.onplate.models.Recipe
 import com.supersonic.onplate.models.RecipeUiState
 import com.supersonic.onplate.models.isValid
 import com.supersonic.onplate.models.toRecipe
+import com.supersonic.onplate.models.toRecipeUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -33,7 +34,7 @@ class MainScreenViewModel @Inject constructor(
             .combine(recipesFlow){ searchQuery, recipes ->
                 when {
                     searchQuery.isNotEmpty() -> recipes.filter { recipe ->
-                        recipe.title.contains(searchQuery, ignoreCase = true)
+                        recipe.toRecipeUiState().searchText.contains(searchQuery, ignoreCase = true)
                     }
                     else -> recipes
                 }
