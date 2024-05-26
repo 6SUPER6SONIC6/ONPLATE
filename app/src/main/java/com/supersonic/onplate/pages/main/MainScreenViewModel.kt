@@ -13,10 +13,8 @@ import com.supersonic.onplate.models.isValid
 import com.supersonic.onplate.models.toRecipe
 import com.supersonic.onplate.models.toRecipeUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
@@ -31,16 +29,22 @@ class MainScreenViewModel @Inject constructor(
     var searchQuery by mutableStateOf("")
         private set
 
-    private val _searchEnabled = MutableStateFlow(false)
-    val searchEnabled = _searchEnabled.asStateFlow()
+    var isSearchEnabled by mutableStateOf(false)
+        private set
 
-    val searchResults: StateFlow<List<Recipe>> =
+    var isFavoriteEnabled by mutableStateOf(false)
+        private set
+
+
+
+    val recipesList: StateFlow<List<Recipe>> =
         snapshotFlow { searchQuery }
             .combine(recipesFlow){ searchQuery, recipes ->
                 when {
                     searchQuery.isNotEmpty() -> recipes.filter { recipe ->
                         recipe.toRecipeUiState().searchText.contains(searchQuery, ignoreCase = true)
                     }
+
                     else -> recipes
                 }
 
@@ -55,16 +59,27 @@ class MainScreenViewModel @Inject constructor(
         private const val TIMEOUT_MILLIS = 5_000L
     }
 
+    fun updateUi(newUiState: MainScreenUiState) {
+        when(newUiState){
+            MainScreenUiState.Search -> onToggleSearch()
+            MainScreenUiState.Favorite -> onToggleFavorite()
+        }
+    }
+
     fun onSearchQueryChange(newQuery: String) {
         searchQuery = newQuery
     }
 
-    fun onToggleSearch(){
+    private fun onToggleSearch(){
         when{
             searchQuery.isNotEmpty() -> onSearchQueryChange("")
-            searchQuery.isEmpty() -> _searchEnabled.value = !_searchEnabled.value
+            searchQuery.isEmpty() -> isSearchEnabled = !isSearchEnabled
         }
 
+    }
+
+    private fun onToggleFavorite(){
+        isFavoriteEnabled = !isFavoriteEnabled
     }
 
     suspend fun updateRecipe(recipeUiState: RecipeUiState) {
@@ -72,5 +87,10 @@ class MainScreenViewModel @Inject constructor(
             recipesRepository.updateRecipe(recipeUiState.toRecipe())
         }
     }
+}
+
+sealed class MainScreenUiState {
+    data object Search: MainScreenUiState()
+    data object Favorite: MainScreenUiState()
 }
 

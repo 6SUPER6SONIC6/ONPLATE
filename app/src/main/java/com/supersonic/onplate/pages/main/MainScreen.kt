@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
@@ -26,10 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -60,43 +58,40 @@ fun MainScreen(
     onNavigationToAddRecipe: () -> Unit,
 ) {
 
-    val allRecipesList by viewModel.searchResults.collectAsState()
+    val searchBarTextFieldColors = OutlinedTextFieldDefaults.colors(
+        focusedContainerColor = Color.Transparent,
+        unfocusedContainerColor = Color.Transparent,
+        focusedBorderColor = Color.Transparent,
+        unfocusedBorderColor = Color.Transparent,
+        focusedTextColor = colorScheme.onPrimary,
+        unfocusedTextColor = colorScheme.onPrimary,
+        cursorColor = colorScheme.tertiaryContainer,
+        selectionColors = TextSelectionColors(handleColor = colorScheme.tertiaryContainer, backgroundColor = colorScheme.tertiary)
+    )
+
+    val allRecipesList by viewModel.recipesList.collectAsState()
     val favoriteRecipesList = allRecipesList.filter { it.favorite }
-
-    var showFavorite by remember {
-        mutableStateOf(false)
-    }
-
-    val searchEnabled by viewModel.searchEnabled.collectAsState()
 
     val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
             MainTopBar(
-                onShowFavoritesClick = { showFavorite = !showFavorite },
-                favoriteClicked = showFavorite,
-                onSearchClick = { viewModel.onToggleSearch() },
-                searchEnabled = searchEnabled,
-                search = {
+                onShowFavoritesClick = { viewModel.updateUi(MainScreenUiState.Favorite) },
+                favoriteClicked = viewModel.isFavoriteEnabled,
+                onSearchClick = { viewModel.updateUi(MainScreenUiState.Search) },
+                isSearchBarEnabled = viewModel.isSearchEnabled,
+                searchBar = {
                     OutlinedTextField(
                         value = viewModel.searchQuery,
-                        onValueChange = {viewModel.onSearchQueryChange(it)},
+                        onValueChange = viewModel::onSearchQueryChange,
                         singleLine = true,
                         trailingIcon = {
                             //Search filters button
                             IconButton(onClick = {}) {
                                 Icon(Icons.Outlined.List, contentDescription = null, tint = colorScheme.onPrimary)
                             }},
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = Color.Transparent,
-                            unfocusedContainerColor = Color.Transparent,
-                            focusedBorderColor = Color.Transparent,
-                            unfocusedBorderColor = Color.Transparent,
-                            focusedTextColor = colorScheme.onPrimary,
-                            unfocusedTextColor = colorScheme.onPrimary,
-                            cursorColor = colorScheme.onPrimary
-                        ),
+                        colors = searchBarTextFieldColors,
                         placeholder = {
                             Text(
                             text = "Search...",
@@ -111,7 +106,7 @@ fun MainScreen(
             MainScreenContent(
                     modifier = Modifier
                         .padding(paddingValues),
-                    recipeList = if (showFavorite) favoriteRecipesList else allRecipesList,
+                    recipeList = if (viewModel.isFavoriteEnabled) favoriteRecipesList else allRecipesList,
                     onRecipeClick = onNavigationToRecipe,
                     onFavoriteClick = {coroutineScope.launch {
                         viewModel.updateRecipe(it)
@@ -137,20 +132,20 @@ private fun MainTopBar(
     onShowFavoritesClick: () -> Unit,
     favoriteClicked: Boolean = false,
     onSearchClick: () -> Unit,
-    searchEnabled: Boolean = false,
-    search: @Composable (() -> Unit)? = null
+    isSearchBarEnabled: Boolean = false,
+    searchBar: @Composable (() -> Unit)? = null
 ) {
     TopBar(
         title = stringResource(MainScreenDestination.titleRes),
-        search = search,
-        searchEnabled = searchEnabled,
-        isEnableBackIcon = false,
+        searchBar = searchBar,
+        isSearchBarEnabled = isSearchBarEnabled,
+        isBackIconEnabled = false,
         actions = {
             //Search
             IconButton(
                 onClick = onSearchClick
             ) {
-                if (searchEnabled){
+                if (isSearchBarEnabled){
                     Icon(Icons.Filled.Close, contentDescription = null, tint = colorScheme.onPrimary)
                 } else {
                     Icon(Icons.Filled.Search, contentDescription = null, tint = colorScheme.onPrimary)
