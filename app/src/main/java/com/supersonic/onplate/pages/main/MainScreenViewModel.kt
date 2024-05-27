@@ -71,11 +71,11 @@ class MainScreenViewModel @Inject constructor(
     }
 
     private fun onToggleSearch(){
-        when{
-            searchQuery.isNotEmpty() -> onSearchQueryChange("")
-            searchQuery.isEmpty() -> isSearchEnabled = !isSearchEnabled
+        if (searchQuery.isNotEmpty()){
+            onSearchQueryChange("")
+        } else {
+            isSearchEnabled = !isSearchEnabled
         }
-
     }
 
     private fun onToggleFavorite(){
@@ -87,10 +87,5 @@ class MainScreenViewModel @Inject constructor(
             recipesRepository.updateRecipe(recipeUiState.toRecipe())
         }
     }
-}
-
-sealed class MainScreenUiState {
-    data object Search: MainScreenUiState()
-    data object Favorite: MainScreenUiState()
 }
 
