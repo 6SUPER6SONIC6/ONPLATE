@@ -5,10 +5,14 @@ import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -24,14 +28,18 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material3.BottomSheetScaffold
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.MaterialTheme.typography
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberBottomSheetScaffoldState
+import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -64,6 +72,7 @@ import com.supersonic.onplate.models.removeStep
 import com.supersonic.onplate.models.updateIngredientValue
 import com.supersonic.onplate.models.updateStepValue
 import com.supersonic.onplate.navigation.NavigationDestination
+import com.supersonic.onplate.pages.newRecipe.camera.CameraCapture
 import com.supersonic.onplate.pages.newRecipe.directions.Step
 import com.supersonic.onplate.pages.newRecipe.directions.StepsList
 import com.supersonic.onplate.pages.newRecipe.ingredients.Ingredient
@@ -96,18 +105,14 @@ fun NewRecipeScreen(
     NewRecipeScreenBody(
         modifier = Modifier.fillMaxSize(),
         recipeUiState = recipeUiState,
+        screenUiState = screenUiState,
         onRecipeValueChange = viewModel::updateUiState,
         scrollPosition = viewModel.scrollPosition,
         onScrollPositionChange = viewModel::updateScrollPosition,
-        screenUiState = screenUiState,
         topBarTitle = stringResource(NewRecipeScreenDestination.titleRes),
-        openPhotoView = {
-            viewModel.openPhotoView(it)
-        },
+        openPhotoView = { viewModel.openPhotoView(it) },
         openCamera = { viewModel.openCamera() },
-        onNavigateBack = {
-            viewModel.navigateBack()
-        },
+        onNavigateBack = { viewModel.navigateBack() },
         onBackClick = onBackClick,
         onSaveClick = {
             coroutineScope.launch {
@@ -116,8 +121,11 @@ fun NewRecipeScreen(
             }
         }
     )
+
 }
 
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NewRecipeScreenBody(
     modifier: Modifier,
@@ -139,6 +147,15 @@ fun NewRecipeScreenBody(
     val contentResolver = LocalContext.current.contentResolver
     var imageToDelete: Uri? by remember { mutableStateOf(null) }
 
+    var requestCameraPermission by remember { mutableStateOf(false) }
+    val imagePicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickMultipleVisualMedia() ) { imageUri ->
+        recipeUiState.photos.addAll(imageUri)
+    }
+
+    val scaffoldState = rememberBottomSheetScaffoldState(bottomSheetState = rememberStandardBottomSheetState(skipHiddenState = false))
+    val scope = rememberCoroutineScope()
+
     //Handling back presses through BackHandler to correctly change the screen state
     BackHandler {
         if (screenUiState == NewRecipeUiState.BaseContent){
@@ -151,7 +168,10 @@ fun NewRecipeScreenBody(
     when {
         openNavigateBackConfirmationDialog -> {
             NavigateBackConfirmationDialog(
-                onConfirmNavigationBack = onBackClick,
+                onConfirmNavigationBack = {
+                    openNavigateBackConfirmationDialog = false
+                    onBackClick.invoke()
+                                          },
                 onCancelNavigationBack = { openNavigateBackConfirmationDialog = false }
             )
         }
@@ -167,12 +187,50 @@ fun NewRecipeScreenBody(
                 onDeleteCancel = { openDeletePhotoDialog = false }
             )
         }
+
+        requestCameraPermission -> {
+            val context = LocalContext.current
+            Permission(
+                permission = Manifest.permission.CAMERA,
+                rationale = "You said you wanted a picture, so I'm going to have to ask for permission.",
+                permissionNotAvailableContent = {
+                    ContentDialog(
+                        title = "Camera Permission",
+                        confirmButtonText = "Go to settings",
+                        cancelButtonText = "Not now",
+                        onConfirm = {
+                            context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                data = Uri.fromParts("package", context.packageName, null)
+                            })
+                        },
+                        onCancel = {
+                            requestCameraPermission = false
+                        }) {
+                        Text(
+                            text = "ONPLATE needs access to the camera so you can take photos and add them to your recipe.\n" +
+                                    "Setting > Permissions > Camera",
+                            style = typography.bodyMedium
+                        )
+                    }
+                },
+                onCancelDialog = { requestCameraPermission = false },
+                onPermissionGranted = { if (it){
+                    scope.launch {
+                        scaffoldState.bottomSheetState.hide()
+                        openCamera.invoke()
+                        requestCameraPermission = false
+                    }
+
+                }
+                }
+            )
+        }
     }
 
     //Screen state
     when(screenUiState) {
 
-        is NewRecipeUiState.Camera -> {
+       NewRecipeUiState.Camera -> {
             CameraCapture(
                 modifier = modifier,
                 imageToPreview = recipeUiState.photos.lastOrNull(),
@@ -200,7 +258,9 @@ fun NewRecipeScreenBody(
         }
 
         NewRecipeUiState.BaseContent -> {
-            Scaffold(
+
+            BottomSheetScaffold(
+                scaffoldState = scaffoldState,
                 topBar = {
                     NewRecipeTopBar(
                     title = topBarTitle,
@@ -217,11 +277,29 @@ fun NewRecipeScreenBody(
                         onRecipeValueChange = onRecipeValueChange,
                         onPhotoViewButtonClick = { openPhotoView(it) },
                         onCameraButtonClick = openCamera,
+                        onOpenBottomSheet = {
+                            scope.launch {
+                                scaffoldState.bottomSheetState.expand()
+                            }
+                        },
                         onSaveClick = onSaveClick
                     )
                 },
+                sheetContent = {
+                    BottomSheetContent(
+                        modifier = Modifier.fillMaxWidth().padding(8.dp),
+                        onTakePhoto = { requestCameraPermission = true },
+                        onPickImage = { scope.launch {
+                            scaffoldState.bottomSheetState.hide()
+                            imagePicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                        } }
+                    )
+                },
+                sheetPeekHeight = 0.dp
             )
         }
+
+        NewRecipeUiState.PhotoPicker -> TODO()
     }
     
 
@@ -239,12 +317,43 @@ private fun NewRecipeTopBar(
 }
 
 @Composable
+fun BottomSheetContent(
+    modifier: Modifier = Modifier,
+    onTakePhoto: () -> Unit,
+    onPickImage: () -> Unit
+) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+
+        Button(
+            modifier = Modifier,
+            onClick = onTakePhoto
+        ) {
+            Text(text = "Take a photo")
+        }
+
+    Button(
+        modifier = Modifier,
+        onClick = onPickImage
+    ) {
+        Text(text = "Select a photo from gallery")
+    }
+
+    }
+
+}
+
+@Composable
 fun NewRecipeScreenContent(
     modifier: Modifier,
     scrollPosition: Int = 0,
     onScrollPositionChange: (Int) -> Unit,
     recipeUiState: RecipeUiState,
     onRecipeValueChange: (RecipeUiState) -> Unit,
+    onOpenBottomSheet: () -> Unit,
     onCameraButtonClick: () -> Unit,
     onPhotoViewButtonClick: (Int) -> Unit,
     onSaveClick: () -> Unit,
@@ -270,6 +379,8 @@ fun NewRecipeScreenContent(
             DirectionsCard(recipeUiState = recipeUiState)
             PhotosCard(
                 photos = recipeUiState.photos,
+                recipeUiState = recipeUiState,
+                onOpenBottomSheet = onOpenBottomSheet,
                 onCameraButtonClick = onCameraButtonClick,
                 onPhotoViewButtonClick = {onPhotoViewButtonClick(it)}
                 )
@@ -473,14 +584,18 @@ private fun DirectionsCard(
     
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PhotosCard(
     photos: List<Uri> = mutableStateListOf(),
+    onOpenBottomSheet: () -> Unit,
     onCameraButtonClick: () -> Unit,
     onPhotoViewButtonClick: (Int) -> Unit,
+    recipeUiState: RecipeUiState
 ) {
 
     var requestCameraPermission by remember { mutableStateOf(false) }
+    var requestImagePickerPermissions by remember { mutableStateOf(false) }
 
 
         ContentCard(cardTitle = stringResource(R.string.cardTitle_photos), modifier = Modifier.padding(8.dp)) {
@@ -517,7 +632,7 @@ private fun PhotosCard(
                             .size(120.dp, 100.dp)
                             .padding(4.dp)
                             .clickable {
-                                requestCameraPermission = true
+                                onOpenBottomSheet.invoke()
                             },
                         shape = RoundedCornerShape(8.dp),
                         border = BorderStroke(1.dp, colorScheme.onSecondaryContainer)
@@ -540,38 +655,72 @@ private fun PhotosCard(
                 }
             }
         }
-    
-    if (requestCameraPermission){
-        val context = LocalContext.current
-        Permission(
-            permission = Manifest.permission.CAMERA,
-            rationale = "You said you wanted a picture, so I'm going to have to ask for permission.",
-            permissionNotAvailableContent = {
-                ContentDialog(
-                    title = "Camera Permission",
-                    confirmButtonText = "Go to settings",
-                    cancelButtonText = "Not now",
-                    onConfirm = {
-                    context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                        data = Uri.fromParts("package", context.packageName, null)
-                    })
+
+    when{
+        requestCameraPermission -> {
+            val context = LocalContext.current
+            Permission(
+                permission = Manifest.permission.CAMERA,
+                rationale = "You said you wanted a picture, so I'm going to have to ask for permission.",
+                permissionNotAvailableContent = {
+                    ContentDialog(
+                        title = "Camera Permission",
+                        confirmButtonText = "Go to settings",
+                        cancelButtonText = "Not now",
+                        onConfirm = {
+                            context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                data = Uri.fromParts("package", context.packageName, null)
+                            })
+                        },
+                        onCancel = {
+                            requestCameraPermission = false
+                        }) {
+                        Text(
+                            text = "ONPLATE needs access to the camera so you can take photos and add them to your recipe.\n" +
+                                    "Setting > Permissions > Camera",
+                            style = typography.bodyMedium
+                        )
+                    }
                 },
-                    onCancel = {
-                    requestCameraPermission = false
-                }) {
-                    Text(
-                        text = "ONPLATE needs access to the camera so you can take photos and add them to your recipe.\n" +
-                            "Setting > Permissions > Camera",
-                        style = typography.bodyMedium
-                    )
+                onCancelDialog = { requestCameraPermission = false },
+                onPermissionGranted = { if (it){
+                    onCameraButtonClick()
                 }
-            },
-            onCancelDialog = { requestCameraPermission = false },
-            onPermissionGranted = { if (it){
-                onCameraButtonClick()
-            }
-            }
-        )
+                }
+            )
+        }
+//        requestImagePickerPermissions -> {
+//            val context = LocalContext.current
+//            Permission(
+//                permission = Manifest.permission.WRITE_EXTERNAL_STORAGE,
+//                rationale = "READ_EXTERNAL_STORAGE",
+//                permissionNotAvailableContent = {
+//                    ContentDialog(
+//                        title = "Storage Permission",
+//                        confirmButtonText = "Go to settings",
+//                        cancelButtonText = "Not now",
+//                        onConfirm = {
+//                            context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+//                                data = Uri.fromParts("package", context.packageName, null)
+//                            })
+//                        },
+//                        onCancel = {
+//                            requestImagePickerPermissions = false
+//                        }) {
+//                        Text(
+//                            text = "ONPLATE needs access to the camera so you can take photos and add them to your recipe.\n" +
+//                                    "Setting > Permissions > Camera",
+//                            style = typography.bodyMedium
+//                        )
+//                    }
+//                },
+//                onCancelDialog = { requestImagePickerPermissions = false },
+//                onPermissionGranted = { if (it){
+//                    imagePicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+//                }
+//                }
+//            )
+//        }
     }
 }
 
@@ -650,13 +799,15 @@ private fun DeletePhotoDialog(
     }
 }
 
+
+
 @Preview(showSystemUi = true)
 @Composable
 private fun NewRecipeScreenContentPreview() {
     ONPLATETheme {
         NewRecipeScreenContent(modifier = Modifier, recipeUiState = RecipeUiState(
             ingredients = mutableListOf(Ingredient()), directions = mutableListOf(Step())
-        ), onRecipeValueChange = {}, onCameraButtonClick = {}, onPhotoViewButtonClick = {}, onScrollPositionChange = {}) {}
+        ), onRecipeValueChange = {}, onCameraButtonClick = {}, onPhotoViewButtonClick = {}, onScrollPositionChange = {}, onOpenBottomSheet = {}) {}
     }
 }
 
@@ -682,6 +833,6 @@ private fun IngredientsCardPreview() {
 @Composable
 private fun PhotosCardPreview() {
     ONPLATETheme {
-        PhotosCard(onCameraButtonClick = {}, onPhotoViewButtonClick = {})
+        PhotosCard(onCameraButtonClick = {}, onPhotoViewButtonClick = {}, recipeUiState = RecipeUiState(), onOpenBottomSheet = {})
     }
 }

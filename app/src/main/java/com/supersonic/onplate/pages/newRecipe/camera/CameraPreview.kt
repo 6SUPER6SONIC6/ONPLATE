@@ -1,4 +1,4 @@
-package com.supersonic.onplate.pages.newRecipe
+package com.supersonic.onplate.pages.newRecipe.camera
 
 import android.content.ContentValues
 import android.content.Context
@@ -181,7 +181,7 @@ fun CameraCapture(
 }
 
 @Composable
-fun CameraPreview(
+private fun CameraPreview(
     modifier: Modifier = Modifier,
     scaleType: ScaleType = ScaleType.FILL_CENTER,
     onUseCase: (UseCase) -> Unit = {}

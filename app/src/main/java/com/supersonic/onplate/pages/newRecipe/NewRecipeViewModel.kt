@@ -27,6 +27,9 @@ class NewRecipeViewModel @Inject constructor(
     val screenUiState = _screenUiState.asStateFlow()
     private var previousScreenUiState: NewRecipeUiState? = null
 
+    var isPhotoPickerOpened by mutableStateOf(false)
+        private set
+
     var scrollPosition by mutableIntStateOf(0)
         private set
 
@@ -56,6 +59,10 @@ class NewRecipeViewModel @Inject constructor(
     fun openPhotoView(initialPhotoIndex: Int) {
         previousScreenUiState = _screenUiState.value
         _screenUiState.value = NewRecipeUiState.PhotoView(initialPhotoIndex)
+    }
+
+    fun openPhotoPicker(){
+        isPhotoPickerOpened = !isPhotoPickerOpened
     }
 
     fun navigateBack() {

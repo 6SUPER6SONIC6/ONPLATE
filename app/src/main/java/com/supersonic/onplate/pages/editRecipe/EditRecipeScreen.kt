@@ -28,15 +28,15 @@ fun EditRecipeScreen(
     NewRecipeScreenBody(
         modifier = Modifier,
         recipeUiState = recipeUiState,
+        screenUiState = viewModel.screenUiState.collectAsState().value,
         onRecipeValueChange = viewModel::updateUiState,
         scrollPosition = viewModel.scrollPosition,
         onScrollPositionChange = viewModel::updateScrollPosition,
-        screenUiState = viewModel.screenUiState.collectAsState().value,
-        onBackClick = onBackClick,
         topBarTitle = stringResource(EditRecipeScreenDestination.titleRes),
-        openCamera = { viewModel.openCamera() },
         openPhotoView = {viewModel.openPhotoView(it)},
+        openCamera = { viewModel.openCamera() },
         onNavigateBack = {viewModel.navigateBack()},
+        onBackClick = onBackClick,
         onSaveClick = {
             coroutineScope.launch {
                 viewModel.updateRecipe()
