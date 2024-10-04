@@ -1,6 +1,5 @@
 package com.supersonic.onplate.pages.main
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -9,12 +8,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
-import androidx.compose.material.icons.outlined.List
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -89,7 +88,7 @@ fun MainScreen(
                         trailingIcon = {
                             //Search filters button
                             IconButton(onClick = {}) {
-                                Icon(Icons.Outlined.List, contentDescription = null, tint = colorScheme.onPrimary)
+                                Icon(Icons.AutoMirrored.Outlined.List, contentDescription = null, tint = colorScheme.onPrimary)
                             }},
                         colors = searchBarTextFieldColors,
                         placeholder = {
@@ -200,7 +199,6 @@ fun MainScreenContent(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun RecipeList(
     recipeList: List<Recipe>,
@@ -210,13 +208,13 @@ private fun RecipeList(
 ) {
     LazyColumn(modifier = modifier) {
         items(recipeList, key = { it.id }){ recipe ->
+            Modifier
+                .fillMaxSize()
             RecipeCard(
                 recipe = recipe.toRecipeUiState(),
                 onItemClick = { onRecipeClick(it) },
                 onFavoriteClick = { onFavoriteClick(it) },
-                modifier = Modifier
-                    .fillMaxSize()
-                    .animateItemPlacement()
+                modifier = Modifier.animateItem()
             )
 
 

@@ -2,8 +2,6 @@ package com.supersonic.onplate.pages.newRecipe.ingredients
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -36,7 +34,7 @@ fun IngredientItem(
     id: Int
 ) {
     var value by remember { mutableStateOf(ingredientValue) }
-    val animationDuration = 500
+    val animationDuration = 300
     var isRemoved by remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = isRemoved) {
@@ -48,10 +46,6 @@ fun IngredientItem(
 
     AnimatedVisibility(
         visible = !isRemoved,
-        enter = expandVertically(
-            animationSpec = tween(durationMillis = animationDuration),
-            expandFrom = Alignment.Top
-        ) + fadeIn(),
         exit = shrinkVertically(
             animationSpec = tween(durationMillis = animationDuration),
             shrinkTowards = Alignment.Top
@@ -69,9 +63,7 @@ fun IngredientItem(
             singleLine = true,
             trailingIcon = {
                 IconButton(
-                    onClick = {
-                        isRemoved = true
-                              },
+                    onClick = { isRemoved = true },
                     enabled = removeEnabled,
                     colors = IconButtonDefaults.iconButtonColors(
                         contentColor = colorScheme.onSecondaryContainer
