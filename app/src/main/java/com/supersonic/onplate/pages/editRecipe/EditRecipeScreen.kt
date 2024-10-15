@@ -37,6 +37,7 @@ fun EditRecipeScreen(
         openCamera = { viewModel.openCamera() },
         onNavigateBack = {viewModel.navigateBack()},
         onBackClick = onBackClick,
+        galleryPhotos = listOf(),
         onSaveClick = {
             coroutineScope.launch {
                 viewModel.updateRecipe()

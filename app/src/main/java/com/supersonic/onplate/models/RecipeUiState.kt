@@ -69,7 +69,7 @@ fun RecipeUiState.addEmptyStep() {
 
 fun RecipeUiState.removeImage(imageUri: Uri?, contentResolver: ContentResolver) {
     if (imageUri != null) {
-        contentResolver.delete(imageUri, null, null)
+//        contentResolver.delete(imageUri, null, null)
         photos.remove(imageUri)
     }
 

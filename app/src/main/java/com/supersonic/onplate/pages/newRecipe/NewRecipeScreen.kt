@@ -1,37 +1,42 @@
 package com.supersonic.onplate.pages.newRecipe
 
 import android.Manifest
+import android.Manifest.permission.READ_EXTERNAL_STORAGE
+import android.Manifest.permission.READ_MEDIA_IMAGES
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.provider.Settings
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.AccountCircle
+import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -55,7 +60,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -89,7 +93,6 @@ import com.supersonic.onplate.ui.components.RecipeTextField
 import com.supersonic.onplate.ui.components.TopBar
 import com.supersonic.onplate.ui.theme.ONPLATETheme
 import com.supersonic.onplate.utils.Permission
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 object NewRecipeScreenDestination : NavigationDestination {
@@ -105,11 +108,18 @@ fun NewRecipeScreen(
     val coroutineScope = rememberCoroutineScope()
     val recipeUiState = viewModel.recipeUiState
     val screenUiState = viewModel.screenUiState.collectAsState().value
+    val context = LocalContext.current
+
+
+    LaunchedEffect(Unit) {
+        viewModel.setImages(context.contentResolver)
+    }
 
     NewRecipeScreenBody(
         modifier = Modifier.fillMaxSize(),
         recipeUiState = recipeUiState,
         screenUiState = screenUiState,
+        galleryPhotos = viewModel.images,
         onRecipeValueChange = viewModel::updateUiState,
         scrollPosition = viewModel.scrollPosition,
         onScrollPositionChange = viewModel::updateScrollPosition,
@@ -128,13 +138,13 @@ fun NewRecipeScreen(
 
 }
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NewRecipeScreenBody(
     modifier: Modifier,
     recipeUiState: RecipeUiState,
     screenUiState: NewRecipeUiState,
+    galleryPhotos: List<Media>,
     onRecipeValueChange: (RecipeUiState) -> Unit,
     scrollPosition: Int = 0,
     onScrollPositionChange: (Int) -> Unit,
@@ -148,16 +158,19 @@ fun NewRecipeScreenBody(
 
     var openNavigateBackConfirmationDialog by remember { mutableStateOf(false) }
     var openDeletePhotoDialog by remember { mutableStateOf(false) }
-    val contentResolver = LocalContext.current.contentResolver
+    val context = LocalContext.current
+    val contentResolver = context.contentResolver
     var imageToDelete: Uri? by remember { mutableStateOf(null) }
 
 
     var openBottomSheet by remember { mutableStateOf(false) }
     val bottomSheetState = rememberModalBottomSheetState()
     var requestCameraPermission by remember { mutableStateOf(false) }
+    var requestImagePickerPermission by remember { mutableStateOf(false) }
     val imagePicker = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickMultipleVisualMedia() ) { imageUri ->
-        recipeUiState.photos.addAll(imageUri)
+        ActivityResultContracts.PickMultipleVisualMedia()
+    ) { imageUris ->
+        if (imageUris.isNotEmpty()) recipeUiState.photos.addAll(imageUris)
     }
 
     val scope = rememberCoroutineScope()
@@ -205,25 +218,28 @@ fun NewRecipeScreenBody(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(8.dp),
+                    photos = galleryPhotos,
                     onTakePhoto = { scope.launch {
                         bottomSheetState.hide()
                         openBottomSheet = false
                         requestCameraPermission = true
                     }
                          },
-                    onPickImage = { scope.launch {
-                        bottomSheetState.hide()
-                        openBottomSheet = false
-                        imagePicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-                    } }
+                    onGrandPermission = {
+                        scope.launch{
+                            bottomSheetState.hide()
+                            openBottomSheet = false
+                            requestImagePickerPermission = true
+                        }
+                                        },
+                    onPickImage = { recipeUiState.photos.add(it) }
                 )
             }
         }
 
         requestCameraPermission -> {
-            val context = LocalContext.current
             Permission(
-                permission = Manifest.permission.CAMERA,
+                permissions = listOf(Manifest.permission.CAMERA),
                 rationale = "You said you wanted a picture, so I'm going to have to ask for permission.",
                 permissionNotAvailableContent = {
                     ContentDialog(
@@ -251,6 +267,51 @@ fun NewRecipeScreenBody(
 //                        scaffoldState.bottomSheetState.hide()
                         openCamera.invoke()
                         requestCameraPermission = false
+                    }
+
+                }
+                }
+            )
+        }
+
+        requestImagePickerPermission -> {
+            val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE){
+                listOf(READ_MEDIA_IMAGES)
+            } else if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU){
+                listOf(READ_MEDIA_IMAGES)
+            } else {
+                listOf(READ_EXTERNAL_STORAGE)
+            }
+
+            Permission(
+                permissions = permissions,
+                rationale = "READ_EXTERNAL_STORAGE",
+                permissionNotAvailableContent = {
+                    ContentDialog(
+                        title = "Storage Permission",
+                        confirmButtonText = "Go to settings",
+                        cancelButtonText = "Not now",
+                        onConfirm = {
+                            context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                data = Uri.fromParts("package", context.packageName, null)
+                            })
+                        },
+                        onCancel = {
+                            requestImagePickerPermission = false
+                        }) {
+                        Text(
+                            text = "ONPLATE needs access to the camera so you can take photos and add them to your recipe.\n" +
+                                    "Setting > Permissions > Camera",
+                            style = typography.bodyMedium
+                        )
+                    }
+                },
+                onCancelDialog = { requestImagePickerPermission = false },
+                onPermissionGranted = { if (it){
+                    scope.launch {
+//                        scaffoldState.bottomSheetState.hide()
+//                        imagePicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                        requestImagePickerPermission = false
                     }
 
                 }
@@ -302,18 +363,18 @@ fun NewRecipeScreenBody(
                 content = { paddingValues ->
                     NewRecipeScreenContent(
                         modifier = Modifier.padding(paddingValues),
+                        galleryPhotos = galleryPhotos,
                         scrollPosition = scrollPosition,
                         onScrollPositionChange = onScrollPositionChange,
                         recipeUiState = recipeUiState,
                         onRecipeValueChange = onRecipeValueChange,
-                        onPhotoViewButtonClick = { openPhotoView(it) },
-                        onCameraButtonClick = openCamera,
                         onOpenBottomSheet = {
                             scope.launch {
                                 bottomSheetState.show()
                             }
                             openBottomSheet = true
                         },
+                        onPhotoViewButtonClick = { openPhotoView(it) },
                         onSaveClick = onSaveClick
                     )
                 },
@@ -340,29 +401,65 @@ private fun NewRecipeTopBar(
 @Composable
 fun BottomSheetContent(
     modifier: Modifier = Modifier,
+    photos: List<Media>,
     onTakePhoto: () -> Unit,
-    onPickImage: () -> Unit
+    onGrandPermission: () -> Unit,
+    onPickImage: (Uri) -> Unit
 ) {
     val bottomPadding = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
 
-        Column(
-            modifier = modifier.padding(bottom = bottomPadding),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            PrimaryButton(
-                text = "Take a photo",
-                onClick = onTakePhoto
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            PrimaryButton(
-                text = "Select a photo from gallery",
-                onClick = onPickImage
-            )
-
+    LazyVerticalGrid(
+        modifier = modifier,
+        columns = GridCells.Adaptive(120.dp),
+    ) {
+        item {
+            Box(
+                modifier = Modifier
+                    .size(120.dp)
+                    .padding(2.dp),
+                contentAlignment = Alignment.Center
+            ){
+                IconButton(onClick = onTakePhoto) {
+                    Icon(imageVector = Icons.Outlined.AccountCircle, contentDescription = null)
+                }
+            }
+        }
+        item {
+            Box(
+                modifier = Modifier
+                    .size(120.dp)
+                    .padding(2.dp),
+                contentAlignment = Alignment.Center
+            ){
+                IconButton(onClick = onGrandPermission) {
+                    Icon(imageVector = Icons.Outlined.Check, contentDescription = null)
+                }
+            }
+        }
+        items(photos){ photo ->
+            Box(
+                modifier = Modifier
+                    .size(120.dp)
+                    .padding(2.dp)
+                    .clickable { onPickImage.invoke(photo.uri) }
+            ){
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(photo.uri)
+                        .crossfade(true)
+                        .build(),
+                    contentScale = ContentScale.Crop,
+                    contentDescription = null
+                )
+            }
         }
 
-
+//        Spacer(modifier = Modifier.height(16.dp))
+//        PrimaryButton(
+//            text = "Select a photo from gallery",
+//            onClick = onPickImage
+//        )
+    }
 }
 
 @Composable
@@ -370,36 +467,35 @@ fun NewRecipeScreenContent(
     modifier: Modifier,
     scrollPosition: Int = 0,
     onScrollPositionChange: (Int) -> Unit,
+    galleryPhotos: List<Media>,
     recipeUiState: RecipeUiState,
     onRecipeValueChange: (RecipeUiState) -> Unit,
     onOpenBottomSheet: () -> Unit,
-    onCameraButtonClick: () -> Unit,
     onPhotoViewButtonClick: (Int) -> Unit,
     onSaveClick: () -> Unit,
 ) {
 
     // Remember scroll position after screen state changes
-    val scrollState = rememberScrollState(scrollPosition)
-    LaunchedEffect(scrollState) {
-        snapshotFlow {
-            scrollState.value
-        }
-            .collectLatest { index ->
-                onScrollPositionChange(index)
-            }
-    }
+//    val scrollState = rememberScrollState(scrollPosition)
+//    LaunchedEffect(scrollState) {
+//        snapshotFlow {
+//            scrollState.value
+//        }
+//            .collectLatest { index ->
+//                onScrollPositionChange(index)
+//            }
+//    }
 
         Column(
             modifier = modifier
-                .verticalScroll(scrollState)
+                .verticalScroll(rememberScrollState())
         ) {
             OverviewCard(recipeUiState = recipeUiState, onValueChange = onRecipeValueChange)
             IngredientsCard(recipeUiState = recipeUiState)
             DirectionsCard(recipeUiState = recipeUiState)
             PhotosCard(
-                photos = recipeUiState.photos,
+                photosUriList = recipeUiState.photos,
                 onOpenBottomSheet = onOpenBottomSheet,
-                onCameraButtonClick = onCameraButtonClick,
                 onPhotoViewButtonClick = {onPhotoViewButtonClick(it)}
             )
             PrimaryButton(
@@ -604,34 +700,28 @@ private fun DirectionsCard(
 
 @Composable
 private fun PhotosCard(
-    photos: List<Uri> = mutableStateListOf(),
+    photosUriList: List<Uri> = mutableStateListOf(),
     onOpenBottomSheet: () -> Unit,
-    onCameraButtonClick: () -> Unit,
     onPhotoViewButtonClick: (Int) -> Unit
 ) {
-
-    var requestCameraPermission by remember { mutableStateOf(false) }
-
-
     ContentCard(cardTitle = stringResource(R.string.cardTitle_photos), modifier = Modifier.padding(8.dp)) {
-
             LazyRow(
                 contentPadding = PaddingValues(vertical = 16.dp, horizontal = 8.dp)
             ) {
-                items(photos.size) { photo ->
+                items(photosUriList) { photoUri ->
                     Surface(
                         modifier = Modifier
                             .size(120.dp, 100.dp)
                             .padding(4.dp)
                             .clickable {
-                                onPhotoViewButtonClick(photo)
+                                onPhotoViewButtonClick(photosUriList.indexOf(photoUri))
                             },
                         shape = RoundedCornerShape(8.dp),
                         border = BorderStroke(1.dp, colorScheme.onSecondaryContainer)
                     ) {
                         AsyncImage(
                             model = ImageRequest.Builder(LocalContext.current)
-                                .data(photos[photo])
+                                .data(photoUri)
                                 .crossfade(true)
                                 .build(),
                             contentScale = ContentScale.Crop,
@@ -639,7 +729,6 @@ private fun PhotosCard(
                         )
                     }
                 }
-
 
                 item {
                     Surface(
@@ -669,73 +758,6 @@ private fun PhotosCard(
                 }
             }
         }
-
-    when{
-        requestCameraPermission -> {
-            val context = LocalContext.current
-            Permission(
-                permission = Manifest.permission.CAMERA,
-                rationale = "You said you wanted a picture, so I'm going to have to ask for permission.",
-                permissionNotAvailableContent = {
-                    ContentDialog(
-                        title = "Camera Permission",
-                        confirmButtonText = "Go to settings",
-                        cancelButtonText = "Not now",
-                        onConfirm = {
-                            context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                                data = Uri.fromParts("package", context.packageName, null)
-                            })
-                        },
-                        onCancel = {
-                            requestCameraPermission = false
-                        }) {
-                        Text(
-                            text = "ONPLATE needs access to the camera so you can take photos and add them to your recipe.\n" +
-                                    "Setting > Permissions > Camera",
-                            style = typography.bodyMedium
-                        )
-                    }
-                },
-                onCancelDialog = { requestCameraPermission = false },
-                onPermissionGranted = { if (it){
-                    onCameraButtonClick()
-                }
-                }
-            )
-        }
-//        requestImagePickerPermissions -> {
-//            val context = LocalContext.current
-//            Permission(
-//                permission = Manifest.permission.WRITE_EXTERNAL_STORAGE,
-//                rationale = "READ_EXTERNAL_STORAGE",
-//                permissionNotAvailableContent = {
-//                    ContentDialog(
-//                        title = "Storage Permission",
-//                        confirmButtonText = "Go to settings",
-//                        cancelButtonText = "Not now",
-//                        onConfirm = {
-//                            context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-//                                data = Uri.fromParts("package", context.packageName, null)
-//                            })
-//                        },
-//                        onCancel = {
-//                            requestImagePickerPermissions = false
-//                        }) {
-//                        Text(
-//                            text = "ONPLATE needs access to the camera so you can take photos and add them to your recipe.\n" +
-//                                    "Setting > Permissions > Camera",
-//                            style = typography.bodyMedium
-//                        )
-//                    }
-//                },
-//                onCancelDialog = { requestImagePickerPermissions = false },
-//                onPermissionGranted = { if (it){
-//                    imagePicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-//                }
-//                }
-//            )
-//        }
-    }
 }
 
 @Composable
@@ -776,7 +798,7 @@ fun PhotoView(
                 .padding(8.dp),
             onClick = onNavigateBack
         ) {
-            Icon(imageVector = Icons.Outlined.ArrowBack, contentDescription = null)
+            Icon(imageVector = Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = null)
         }
 
     }
@@ -819,9 +841,9 @@ private fun DeletePhotoDialog(
 @Composable
 private fun NewRecipeScreenContentPreview() {
     ONPLATETheme {
-        NewRecipeScreenContent(modifier = Modifier, recipeUiState = RecipeUiState(
+        NewRecipeScreenContent(modifier = Modifier, onScrollPositionChange = {}, recipeUiState = RecipeUiState(
             ingredients = mutableListOf(Ingredient()), directions = mutableListOf(Step())
-        ), onRecipeValueChange = {}, onCameraButtonClick = {}, onPhotoViewButtonClick = {}, onScrollPositionChange = {}, onOpenBottomSheet = {}) {}
+        ), onRecipeValueChange = {}, onOpenBottomSheet = {}, onPhotoViewButtonClick = {}, galleryPhotos = listOf(), onSaveClick = {})
     }
 }
 
@@ -847,6 +869,6 @@ private fun IngredientsCardPreview() {
 @Composable
 private fun PhotosCardPreview() {
     ONPLATETheme {
-        PhotosCard(onOpenBottomSheet = {}, onCameraButtonClick = {}, onPhotoViewButtonClick = {})
+        PhotosCard(onOpenBottomSheet = {}, onPhotoViewButtonClick = {})
     }
 }
