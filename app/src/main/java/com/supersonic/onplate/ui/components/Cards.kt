@@ -40,7 +40,7 @@ import coil.request.ImageRequest
 import com.supersonic.onplate.models.RecipeUiState
 import com.supersonic.onplate.models.toRecipeUiState
 import com.supersonic.onplate.ui.theme.ONPLATETheme
-import com.supersonic.onplate.utils.MockUtils
+import com.supersonic.onplate.utils.ui.MockUtils
 
 @Composable
 fun RecipeCard(

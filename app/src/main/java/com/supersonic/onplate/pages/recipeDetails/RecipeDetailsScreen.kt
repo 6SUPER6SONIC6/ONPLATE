@@ -38,14 +38,14 @@ import com.supersonic.onplate.R
 import com.supersonic.onplate.models.Recipe
 import com.supersonic.onplate.models.toRecipe
 import com.supersonic.onplate.navigation.NavigationDestination
-import com.supersonic.onplate.pages.newRecipe.directions.Step
-import com.supersonic.onplate.pages.newRecipe.ingredients.Ingredient
+import com.supersonic.onplate.pages.newRecipe.components.Ingredient
+import com.supersonic.onplate.pages.newRecipe.components.Step
 import com.supersonic.onplate.ui.components.ContentCard
 import com.supersonic.onplate.ui.components.ContentDialog
 import com.supersonic.onplate.ui.components.HorizontalImageSlider
 import com.supersonic.onplate.ui.components.TopBar
 import com.supersonic.onplate.ui.theme.ONPLATETheme
-import com.supersonic.onplate.utils.MockUtils
+import com.supersonic.onplate.utils.ui.MockUtils
 import kotlinx.coroutines.launch
 
 object RecipeScreenDestination : NavigationDestination {

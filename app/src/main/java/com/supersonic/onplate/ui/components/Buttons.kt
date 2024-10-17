@@ -5,9 +5,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material3.Button
-import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.FloatingActionButtonElevation
 import androidx.compose.material3.Icon
@@ -15,6 +15,7 @@ import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.supersonic.onplate.ui.theme.ONPLATETheme
@@ -46,20 +47,18 @@ fun PrimaryButton(
 @Composable
 fun Fab(
     modifier: Modifier = Modifier,
-    icon: @Composable () -> Unit,
-    text: String,
+    icon: ImageVector,
     elevation: FloatingActionButtonElevation = FloatingActionButtonDefaults.elevation(),
-    onClick: () -> Unit = {  }
+    onClick: () -> Unit = { }
 ) {
     Box(
         modifier = modifier
     ) {
-        ExtendedFloatingActionButton(
+        FloatingActionButton(
             onClick = onClick,
             elevation = elevation
         ) {
-            icon.invoke()
-            Text(text = text)
+            Icon(imageVector = icon, contentDescription = "Fab Icon")
         }
     }
 }
@@ -76,9 +75,6 @@ fun PrimaryButtonPreview() {
 @Composable
 fun FabPreview() {
     ONPLATETheme {
-        Fab(icon = {
-            Icon(Icons.Filled.Add , contentDescription = null)
-        },
-            text = "Add Recipe")
+        Fab(icon = Icons.Outlined.Add)
     }
 }

@@ -4,8 +4,8 @@ import android.content.ContentResolver
 import android.net.Uri
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.toMutableStateList
-import com.supersonic.onplate.pages.newRecipe.directions.Step
-import com.supersonic.onplate.pages.newRecipe.ingredients.Ingredient
+import com.supersonic.onplate.pages.newRecipe.components.Ingredient
+import com.supersonic.onplate.pages.newRecipe.components.Step
 
 data class RecipeUiState(
     val id: Int = 0,

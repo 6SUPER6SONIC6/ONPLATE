@@ -115,11 +115,8 @@ fun MainScreen(
         floatingActionButtonPosition = FabPosition.End,
         floatingActionButton = {
             Fab(
-                onClick = { onNavigationToAddRecipe.invoke() },
-                icon = {
-                    Icon(Icons.Filled.Add, contentDescription = null)
-                },
-                text = stringResource(R.string.fab_newRecipe)
+                icon = Icons.Filled.Add,
+                onClick = onNavigationToAddRecipe
             )
         }
     )

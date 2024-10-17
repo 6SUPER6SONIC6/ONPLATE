@@ -30,7 +30,7 @@ import androidx.compose.ui.unit.sp
 import com.supersonic.onplate.R
 import com.supersonic.onplate.ui.components.ContentDialog
 import com.supersonic.onplate.ui.theme.ONPLATETheme
-import com.supersonic.onplate.utils.TimePickerLists
+import com.supersonic.onplate.utils.date.TimePickerLists
 
 val timePickerListHours = TimePickerLists.getTimePickerListHours()
 val timePickerListMinutes = TimePickerLists.getTimePickerListMinutes()

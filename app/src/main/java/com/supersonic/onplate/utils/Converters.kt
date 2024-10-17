@@ -4,8 +4,8 @@ import android.net.Uri
 import androidx.room.TypeConverter
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import com.supersonic.onplate.pages.newRecipe.directions.Step
-import com.supersonic.onplate.pages.newRecipe.ingredients.Ingredient
+import com.supersonic.onplate.pages.newRecipe.components.Ingredient
+import com.supersonic.onplate.pages.newRecipe.components.Step
 
 class Converters {
 

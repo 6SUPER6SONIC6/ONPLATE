@@ -1,4 +1,4 @@
-package com.supersonic.onplate.pages.newRecipe.camera
+package com.supersonic.onplate.pages.newRecipe.components
 
 import android.content.ContentValues
 import android.content.Context
@@ -45,7 +45,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
@@ -70,7 +69,7 @@ fun CameraCapture(
 ) {
         Box(modifier = modifier) {
             val context = LocalContext.current
-            val lifecycleOwner = LocalLifecycleOwner.current
+            val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
             var previewUseCase by remember { mutableStateOf<UseCase>(Preview.Builder().build()) }
             val imageCaptureUseCase by remember {
                 mutableStateOf(
@@ -176,12 +175,10 @@ fun CameraCapture(
                 }
             }
         }
-
-
 }
 
 @Composable
-private fun CameraPreview(
+fun CameraPreview(
     modifier: Modifier = Modifier,
     scaleType: ScaleType = ScaleType.FILL_CENTER,
     onUseCase: (UseCase) -> Unit = {}
@@ -254,7 +251,7 @@ private fun takePhoto(
     )
 
 }
-private suspend fun Context.getCameraProvider(): ProcessCameraProvider = suspendCoroutine { continuation ->
+suspend fun Context.getCameraProvider(): ProcessCameraProvider = suspendCoroutine { continuation ->
     ProcessCameraProvider.getInstance(this).also { future ->
         future.addListener({
             continuation.resume(future.get())

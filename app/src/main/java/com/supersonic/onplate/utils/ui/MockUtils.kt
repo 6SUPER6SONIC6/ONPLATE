@@ -1,8 +1,8 @@
-package com.supersonic.onplate.utils
+package com.supersonic.onplate.utils.ui
 
 import com.supersonic.onplate.models.Recipe
-import com.supersonic.onplate.pages.newRecipe.directions.Step
-import com.supersonic.onplate.pages.newRecipe.ingredients.Ingredient
+import com.supersonic.onplate.pages.newRecipe.components.Ingredient
+import com.supersonic.onplate.pages.newRecipe.components.Step
 
 val mockListIngredients = listOf(
     "8 good-quality pork sausages",

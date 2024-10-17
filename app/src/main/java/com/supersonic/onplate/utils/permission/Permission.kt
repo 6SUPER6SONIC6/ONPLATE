@@ -1,4 +1,4 @@
-package com.supersonic.onplate.utils
+package com.supersonic.onplate.utils.permission
 
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable

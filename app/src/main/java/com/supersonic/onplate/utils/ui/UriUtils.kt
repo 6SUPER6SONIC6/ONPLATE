@@ -1,4 +1,4 @@
-package com.supersonic.onplate.utils
+package com.supersonic.onplate.utils.ui
 
 import android.content.ContentResolver
 import android.net.Uri

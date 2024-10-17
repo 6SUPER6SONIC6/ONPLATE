@@ -3,7 +3,7 @@ package com.supersonic.onplate.pages.recipeDetails
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.supersonic.onplate.db.RecipesRepository
+import com.supersonic.onplate.data.RecipesRepository
 import com.supersonic.onplate.models.RecipeUiState
 import com.supersonic.onplate.models.toRecipe
 import com.supersonic.onplate.models.toRecipeUiState

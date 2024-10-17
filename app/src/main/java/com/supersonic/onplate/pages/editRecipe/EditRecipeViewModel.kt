@@ -7,7 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.supersonic.onplate.db.RecipesRepository
+import com.supersonic.onplate.data.RecipesRepository
 import com.supersonic.onplate.models.RecipeUiState
 import com.supersonic.onplate.models.isValid
 import com.supersonic.onplate.models.toRecipe

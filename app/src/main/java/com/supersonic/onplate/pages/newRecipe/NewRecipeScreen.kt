@@ -1,15 +1,8 @@
 package com.supersonic.onplate.pages.newRecipe
 
-import android.Manifest
-import android.Manifest.permission.READ_EXTERNAL_STORAGE
-import android.Manifest.permission.READ_MEDIA_IMAGES
-import android.content.Intent
+import android.content.ContentResolver
 import android.net.Uri
-import android.os.Build
-import android.provider.Settings
 import androidx.activity.compose.BackHandler
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -17,17 +10,11 @@ import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -35,16 +22,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.outlined.AccountCircle
-import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme.colorScheme
-import androidx.compose.material3.MaterialTheme.typography
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -70,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.supersonic.onplate.R
+import com.supersonic.onplate.data.Media
 import com.supersonic.onplate.models.RecipeUiState
 import com.supersonic.onplate.models.addEmptyIngredient
 import com.supersonic.onplate.models.addEmptyStep
@@ -80,19 +64,22 @@ import com.supersonic.onplate.models.removeStep
 import com.supersonic.onplate.models.updateIngredientValue
 import com.supersonic.onplate.models.updateStepValue
 import com.supersonic.onplate.navigation.NavigationDestination
-import com.supersonic.onplate.pages.newRecipe.camera.CameraCapture
-import com.supersonic.onplate.pages.newRecipe.directions.Step
-import com.supersonic.onplate.pages.newRecipe.directions.StepsList
-import com.supersonic.onplate.pages.newRecipe.ingredients.Ingredient
-import com.supersonic.onplate.pages.newRecipe.ingredients.IngredientsList
+import com.supersonic.onplate.pages.newRecipe.components.CameraCapture
+import com.supersonic.onplate.pages.newRecipe.components.CameraPermissionDialog
+import com.supersonic.onplate.pages.newRecipe.components.DeletePhotoDialog
+import com.supersonic.onplate.pages.newRecipe.components.ImagesModalBottomSheet
+import com.supersonic.onplate.pages.newRecipe.components.Ingredient
+import com.supersonic.onplate.pages.newRecipe.components.IngredientsList
+import com.supersonic.onplate.pages.newRecipe.components.NavigateBackConfirmationDialog
+import com.supersonic.onplate.pages.newRecipe.components.ReadImagesPermissionDialog
+import com.supersonic.onplate.pages.newRecipe.components.Step
+import com.supersonic.onplate.pages.newRecipe.components.StepsList
 import com.supersonic.onplate.ui.components.ContentCard
-import com.supersonic.onplate.ui.components.ContentDialog
 import com.supersonic.onplate.ui.components.HorizontalImageSlider
 import com.supersonic.onplate.ui.components.PrimaryButton
 import com.supersonic.onplate.ui.components.RecipeTextField
 import com.supersonic.onplate.ui.components.TopBar
 import com.supersonic.onplate.ui.theme.ONPLATETheme
-import com.supersonic.onplate.utils.Permission
 import kotlinx.coroutines.launch
 
 object NewRecipeScreenDestination : NavigationDestination {
@@ -108,18 +95,14 @@ fun NewRecipeScreen(
     val coroutineScope = rememberCoroutineScope()
     val recipeUiState = viewModel.recipeUiState
     val screenUiState = viewModel.screenUiState.collectAsState().value
-    val context = LocalContext.current
-
-
-    LaunchedEffect(Unit) {
-        viewModel.setImages(context.contentResolver)
-    }
+    val images = viewModel.images.collectAsState()
 
     NewRecipeScreenBody(
         modifier = Modifier.fillMaxSize(),
         recipeUiState = recipeUiState,
         screenUiState = screenUiState,
-        galleryPhotos = viewModel.images,
+        galleryPhotos = images.value,
+        updateImages = viewModel::loadImages,
         onRecipeValueChange = viewModel::updateUiState,
         scrollPosition = viewModel.scrollPosition,
         onScrollPositionChange = viewModel::updateScrollPosition,
@@ -131,7 +114,7 @@ fun NewRecipeScreen(
         onSaveClick = {
             coroutineScope.launch {
                 viewModel.saveRecipe()
-                onBackClick()
+                onBackClick.invoke()
             }
         }
     )
@@ -145,6 +128,7 @@ fun NewRecipeScreenBody(
     recipeUiState: RecipeUiState,
     screenUiState: NewRecipeUiState,
     galleryPhotos: List<Media>,
+    updateImages: (ContentResolver) -> Unit,
     onRecipeValueChange: (RecipeUiState) -> Unit,
     scrollPosition: Int = 0,
     onScrollPositionChange: (Int) -> Unit,
@@ -167,12 +151,6 @@ fun NewRecipeScreenBody(
     val bottomSheetState = rememberModalBottomSheetState()
     var requestCameraPermission by remember { mutableStateOf(false) }
     var requestImagePickerPermission by remember { mutableStateOf(false) }
-    val imagePicker = rememberLauncherForActivityResult(
-        ActivityResultContracts.PickMultipleVisualMedia()
-    ) { imageUris ->
-        if (imageUris.isNotEmpty()) recipeUiState.photos.addAll(imageUris)
-    }
-
     val scope = rememberCoroutineScope()
 
     //Handling back presses through BackHandler to correctly change the screen state
@@ -208,113 +186,52 @@ fun NewRecipeScreenBody(
         }
 
         openBottomSheet -> {
-            ModalBottomSheet(
-                onDismissRequest = { openBottomSheet = false },
+            updateImages.invoke(contentResolver)
+            ImagesModalBottomSheet(
+                photos = galleryPhotos,
                 sheetState = bottomSheetState,
-                containerColor = colorScheme.secondaryContainer
-            )
-            {
-                BottomSheetContent(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp),
-                    photos = galleryPhotos,
-                    onTakePhoto = { scope.launch {
+                requestImagePickerPermission = {
+                    openBottomSheet = false
+                    requestImagePickerPermission = true
+                },
+                onTakePhoto = {
+                    scope.launch {
                         bottomSheetState.hide()
                         openBottomSheet = false
                         requestCameraPermission = true
                     }
-                         },
-                    onGrandPermission = {
-                        scope.launch{
-                            bottomSheetState.hide()
-                            openBottomSheet = false
-                            requestImagePickerPermission = true
-                        }
-                                        },
-                    onPickImage = { recipeUiState.photos.add(it) }
-                )
-            }
+                              },
+                onPickImage ={ recipeUiState.photos.add(it) },
+                onDismissRequest = { openBottomSheet = false }
+            )
         }
 
         requestCameraPermission -> {
-            Permission(
-                permissions = listOf(Manifest.permission.CAMERA),
-                rationale = "You said you wanted a picture, so I'm going to have to ask for permission.",
-                permissionNotAvailableContent = {
-                    ContentDialog(
-                        title = "Camera Permission",
-                        confirmButtonText = "Go to settings",
-                        cancelButtonText = "Not now",
-                        onConfirm = {
-                            context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                                data = Uri.fromParts("package", context.packageName, null)
-                            })
-                        },
-                        onCancel = {
-                            requestCameraPermission = false
-                        }) {
-                        Text(
-                            text = "ONPLATE needs access to the camera so you can take photos and add them to your recipe.\n" +
-                                    "Setting > Permissions > Camera",
-                            style = typography.bodyMedium
-                        )
-                    }
+            CameraPermissionDialog(
+                context = context,
+                onCancel = {
+                    requestCameraPermission = false
+                    openBottomSheet = true
                 },
-                onCancelDialog = { requestCameraPermission = false },
-                onPermissionGranted = { if (it){
-                    scope.launch {
-//                        scaffoldState.bottomSheetState.hide()
+                onPermissionGranted = {
+                    if (it){
                         openCamera.invoke()
                         requestCameraPermission = false
                     }
-
-                }
                 }
             )
         }
 
         requestImagePickerPermission -> {
-            val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE){
-                listOf(READ_MEDIA_IMAGES)
-            } else if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU){
-                listOf(READ_MEDIA_IMAGES)
-            } else {
-                listOf(READ_EXTERNAL_STORAGE)
-            }
-
-            Permission(
-                permissions = permissions,
-                rationale = "READ_EXTERNAL_STORAGE",
-                permissionNotAvailableContent = {
-                    ContentDialog(
-                        title = "Storage Permission",
-                        confirmButtonText = "Go to settings",
-                        cancelButtonText = "Not now",
-                        onConfirm = {
-                            context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                                data = Uri.fromParts("package", context.packageName, null)
-                            })
-                        },
-                        onCancel = {
-                            requestImagePickerPermission = false
-                        }) {
-                        Text(
-                            text = "ONPLATE needs access to the camera so you can take photos and add them to your recipe.\n" +
-                                    "Setting > Permissions > Camera",
-                            style = typography.bodyMedium
-                        )
-                    }
+            ReadImagesPermissionDialog(
+                context = context,
+                onCancel = {
+                    requestImagePickerPermission = false
+                    openBottomSheet = true
                 },
-                onCancelDialog = { requestImagePickerPermission = false },
-                onPermissionGranted = { if (it){
-                    scope.launch {
-//                        scaffoldState.bottomSheetState.hide()
-//                        imagePicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-                        requestImagePickerPermission = false
-                    }
-
-                }
+                onPermissionGranted = {
+                    if (it) requestImagePickerPermission = false
+                    openBottomSheet = true
                 }
             )
         }
@@ -396,70 +313,6 @@ private fun NewRecipeTopBar(
         title = title,
         onBackClick = onBackClick
     )
-}
-
-@Composable
-fun BottomSheetContent(
-    modifier: Modifier = Modifier,
-    photos: List<Media>,
-    onTakePhoto: () -> Unit,
-    onGrandPermission: () -> Unit,
-    onPickImage: (Uri) -> Unit
-) {
-    val bottomPadding = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-
-    LazyVerticalGrid(
-        modifier = modifier,
-        columns = GridCells.Adaptive(120.dp),
-    ) {
-        item {
-            Box(
-                modifier = Modifier
-                    .size(120.dp)
-                    .padding(2.dp),
-                contentAlignment = Alignment.Center
-            ){
-                IconButton(onClick = onTakePhoto) {
-                    Icon(imageVector = Icons.Outlined.AccountCircle, contentDescription = null)
-                }
-            }
-        }
-        item {
-            Box(
-                modifier = Modifier
-                    .size(120.dp)
-                    .padding(2.dp),
-                contentAlignment = Alignment.Center
-            ){
-                IconButton(onClick = onGrandPermission) {
-                    Icon(imageVector = Icons.Outlined.Check, contentDescription = null)
-                }
-            }
-        }
-        items(photos){ photo ->
-            Box(
-                modifier = Modifier
-                    .size(120.dp)
-                    .padding(2.dp)
-                    .clickable { onPickImage.invoke(photo.uri) }
-            ){
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(photo.uri)
-                        .crossfade(true)
-                        .build(),
-                    contentScale = ContentScale.Crop,
-                    contentDescription = null
-                )
-            }
-        }
-
-//        Spacer(modifier = Modifier.height(16.dp))
-//        PrimaryButton(
-//            text = "Select a photo from gallery",
-//            onClick = onPickImage
-//        )
-    }
 }
 
 @Composable
@@ -610,9 +463,7 @@ private fun OverviewCard(
 }
 
 @Composable
-private fun IngredientsCard(
-    recipeUiState: RecipeUiState
-    ) {
+private fun IngredientsCard(recipeUiState: RecipeUiState) {
 
     ContentCard(cardTitle = stringResource(id = R.string.cardTitle_ingredients), modifier = Modifier.padding(8.dp)) {
 
@@ -655,9 +506,7 @@ private fun IngredientsCard(
 }
 
 @Composable
-private fun DirectionsCard(
-    recipeUiState: RecipeUiState,
-) {
+private fun DirectionsCard(recipeUiState: RecipeUiState) {
     val stepsList = recipeUiState.directions
 
     ContentCard(cardTitle = stringResource(id = R.string.cardTitle_directions), modifier = Modifier.padding(8.dp)) {
@@ -803,39 +652,6 @@ fun PhotoView(
 
     }
 }
-
-@Composable
-private fun NavigateBackConfirmationDialog(
-    onConfirmNavigationBack: () -> Unit,
-    onCancelNavigationBack: () -> Unit
-) {
-    ContentDialog(
-        title = "Navigate back?",
-        confirmButtonText = "Navigate back",
-        cancelButtonText = "Stay",
-        onConfirm = onConfirmNavigationBack,
-        onCancel = onCancelNavigationBack
-    ) {
-        Text(text = "Are you sure you want to go back?")
-    }
-}
-
-@Composable
-private fun DeletePhotoDialog(
-    onDeleteConfirm: () -> Unit,
-    onDeleteCancel: () -> Unit
-) {
-    ContentDialog(
-        title = stringResource(R.string.delete_photo_dialog_title),
-        icon = Icons.Outlined.Delete,
-        onConfirm = onDeleteConfirm, 
-        onCancel = onDeleteCancel,
-    ) {
-        Text(text = "Delete this photo?")
-    }
-}
-
-
 
 @Preview(showSystemUi = true)
 @Composable

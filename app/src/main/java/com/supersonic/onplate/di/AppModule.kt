@@ -1,6 +1,7 @@
-package com.supersonic.onplate
+package com.supersonic.onplate.di
 
 import android.content.Context
+import com.supersonic.onplate.data.MediaRepository
 import com.supersonic.onplate.db.OnplateDatabase
 import com.supersonic.onplate.db.RecipeDao
 import dagger.Module
@@ -24,5 +25,11 @@ object AppModule {
     @Singleton
     fun provideRecipeDao(onplateDatabase: OnplateDatabase): RecipeDao {
         return onplateDatabase.recipeDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideMediaRepository(): MediaRepository {
+        return MediaRepository()
     }
 }
