@@ -88,7 +88,7 @@ fun MainScreen(
                         trailingIcon = {
                             //Search filters button
                             IconButton(onClick = {}) {
-                                Icon(Icons.AutoMirrored.Outlined.List, contentDescription = null, tint = colorScheme.onPrimary)
+                                Icon(Icons.AutoMirrored.Outlined.List, contentDescription = null, )
                             }},
                         colors = searchBarTextFieldColors,
                         placeholder = {
@@ -142,9 +142,9 @@ private fun MainTopBar(
                 onClick = onSearchClick
             ) {
                 if (isSearchBarEnabled){
-                    Icon(Icons.Filled.Close, contentDescription = null, tint = colorScheme.onPrimary)
+                    Icon(Icons.Filled.Close, contentDescription = null, )
                 } else {
-                    Icon(Icons.Filled.Search, contentDescription = null, tint = colorScheme.onPrimary)
+                    Icon(Icons.Filled.Search, contentDescription = null, )
                 }
 
             }
@@ -153,16 +153,10 @@ private fun MainTopBar(
                 Icon(
                     imageVector = if (favoriteClicked) Icons.Outlined.Favorite else Icons.Outlined.FavoriteBorder,
                     contentDescription = null,
-                    tint = colorScheme.onPrimary
                 )
             }
-            //Settings
-//            IconButton(onClick = {
-//                Toast.makeText(context, "Settings", Toast.LENGTH_SHORT).show()
-//            }) {
-//                Icon(Icons.Filled.Settings, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary)
-//            }
-        })
+        }
+    )
 }
 
 

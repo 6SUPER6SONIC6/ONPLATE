@@ -8,6 +8,7 @@ import androidx.compose.ui.res.stringResource
 import com.supersonic.onplate.R
 import com.supersonic.onplate.navigation.NavigationDestination
 import com.supersonic.onplate.pages.newRecipe.NewRecipeScreenBody
+import com.supersonic.onplate.pages.newRecipe.NewRecipeViewModel
 import kotlinx.coroutines.launch
 
 object EditRecipeScreenDestination : NavigationDestination {
@@ -19,29 +20,30 @@ object EditRecipeScreenDestination : NavigationDestination {
 
 @Composable
 fun EditRecipeScreen(
-    viewModel: EditRecipeViewModel,
+    editRecipeViewModel: EditRecipeViewModel,
+    newRecipeViewModel: NewRecipeViewModel,
     onBackClick: () -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val recipeUiState = viewModel.recipeUiState
+    val recipeUiState = editRecipeViewModel.recipeUiState
 
     NewRecipeScreenBody(
         modifier = Modifier,
         recipeUiState = recipeUiState,
-        screenUiState = viewModel.screenUiState.collectAsState().value,
-        onRecipeValueChange = viewModel::updateUiState,
-        scrollPosition = viewModel.scrollPosition,
-        onScrollPositionChange = viewModel::updateScrollPosition,
+        screenUiState = editRecipeViewModel.screenUiState.collectAsState().value,
+        onRecipeValueChange = editRecipeViewModel::updateUiState,
+        scrollPosition = editRecipeViewModel.scrollPosition,
+        onScrollPositionChange = editRecipeViewModel::updateScrollPosition,
         topBarTitle = stringResource(EditRecipeScreenDestination.titleRes),
-        openPhotoView = {viewModel.openPhotoView(it)},
-        openCamera = { viewModel.openCamera() },
-        onNavigateBack = {viewModel.navigateBack()},
+        openPhotoView = {editRecipeViewModel.openPhotoView(it)},
+        openCamera = { editRecipeViewModel.openCamera() },
+        onNavigateBack = {editRecipeViewModel.navigateBack()},
         onBackClick = onBackClick,
-        galleryPhotos = listOf(),
+        galleryPhotos = newRecipeViewModel.images.collectAsState().value,
         updateImages = {},
         onSaveClick = {
             coroutineScope.launch {
-                viewModel.updateRecipe()
+                editRecipeViewModel.updateRecipe()
                 onBackClick()
             }
         })

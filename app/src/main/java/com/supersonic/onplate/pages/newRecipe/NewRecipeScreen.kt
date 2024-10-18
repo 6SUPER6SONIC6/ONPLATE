@@ -3,10 +3,13 @@ package com.supersonic.onplate.pages.newRecipe
 import android.content.ContentResolver
 import android.net.Uri
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -23,7 +26,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -31,7 +33,6 @@ import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -121,7 +122,7 @@ fun NewRecipeScreen(
 
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun NewRecipeScreenBody(
     modifier: Modifier,
@@ -148,10 +149,8 @@ fun NewRecipeScreenBody(
 
 
     var openBottomSheet by remember { mutableStateOf(false) }
-    val bottomSheetState = rememberModalBottomSheetState()
     var requestCameraPermission by remember { mutableStateOf(false) }
     var requestImagePickerPermission by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
 
     //Handling back presses through BackHandler to correctly change the screen state
     BackHandler {
@@ -189,17 +188,13 @@ fun NewRecipeScreenBody(
             updateImages.invoke(contentResolver)
             ImagesModalBottomSheet(
                 photos = galleryPhotos,
-                sheetState = bottomSheetState,
                 requestImagePickerPermission = {
                     openBottomSheet = false
                     requestImagePickerPermission = true
                 },
                 onTakePhoto = {
-                    scope.launch {
-                        bottomSheetState.hide()
-                        openBottomSheet = false
-                        requestCameraPermission = true
-                    }
+                    openBottomSheet = false
+                    requestCameraPermission = true
                               },
                 onPickImage ={ recipeUiState.photos.add(it) },
                 onDismissRequest = { openBottomSheet = false }
@@ -236,70 +231,70 @@ fun NewRecipeScreenBody(
             )
         }
     }
-
     //Screen state
-    when(screenUiState) {
+    AnimatedContent(
+        targetState = screenUiState,
+    ) { targetState ->
 
-       NewRecipeUiState.Camera -> {
-            CameraCapture(
-                modifier = modifier,
-                imageToPreview = recipeUiState.photos.lastOrNull(),
-                openImagePreview = { openPhotoView(recipeUiState.photos.lastIndex) },
-                onBackClick = onNavigateBack,
-                onImageCaptured = { capturedImageUri ->
-                recipeUiState.photos.add(capturedImageUri)
+        when(targetState) {
+
+            NewRecipeUiState.Camera -> {
+                CameraCapture(
+                    modifier = modifier,
+                    imageToPreview = recipeUiState.photos.lastOrNull(),
+                    openImagePreview = { openPhotoView(recipeUiState.photos.lastIndex) },
+                    onBackClick = onNavigateBack,
+                    onImageCaptured = { capturedImageUri ->
+                        recipeUiState.photos.add(capturedImageUri)
+                    }
+                )
             }
-            )
-        }
 
-        is NewRecipeUiState.PhotoView -> {
-            val initialPhotoIndex = screenUiState.initialPhotoIndex
-            PhotoView(
-                modifier = modifier,
-                imageList = recipeUiState.photos,
-                initialPhotoIndex = initialPhotoIndex,
-                onNavigateBack = onNavigateBack,
-                onDeleteClick = { uri ->
-                    imageToDelete = uri
-                    openDeletePhotoDialog = true
-                }
-            )
+            is NewRecipeUiState.PhotoView -> {
+                val initialPhotoIndex = targetState.initialPhotoIndex
+                PhotoView(
+                    modifier = modifier,
+                    imageList = recipeUiState.photos,
+                    initialPhotoIndex = initialPhotoIndex,
+                    onNavigateBack = onNavigateBack,
+                    onDeleteClick = { uri ->
+                        imageToDelete = uri
+                        openDeletePhotoDialog = true
+                    }
+                )
 
-        }
+            }
 
-        NewRecipeUiState.BaseContent -> {
+            NewRecipeUiState.BaseContent -> {
 
-            Scaffold(
-                topBar = {
-                    NewRecipeTopBar(
-                    title = topBarTitle,
-                        onBackClick = {
-                            openNavigateBackConfirmationDialog = true
-                        }
-                ) },
-                content = { paddingValues ->
-                    NewRecipeScreenContent(
-                        modifier = Modifier.padding(paddingValues),
-                        galleryPhotos = galleryPhotos,
-                        scrollPosition = scrollPosition,
-                        onScrollPositionChange = onScrollPositionChange,
-                        recipeUiState = recipeUiState,
-                        onRecipeValueChange = onRecipeValueChange,
-                        onOpenBottomSheet = {
-                            scope.launch {
-                                bottomSheetState.show()
+                Scaffold(
+                    topBar = {
+                        NewRecipeTopBar(
+                            title = topBarTitle,
+                            onBackClick = {
+                                openNavigateBackConfirmationDialog = true
                             }
-                            openBottomSheet = true
-                        },
-                        onPhotoViewButtonClick = { openPhotoView(it) },
-                        onSaveClick = onSaveClick
-                    )
-                },
-            )
-        }
+                        ) },
+                    content = { paddingValues ->
+                        NewRecipeScreenContent(
+                            modifier = Modifier.padding(paddingValues),
+                            galleryPhotos = galleryPhotos,
+                            scrollPosition = scrollPosition,
+                            onScrollPositionChange = onScrollPositionChange,
+                            recipeUiState = recipeUiState,
+                            onRecipeValueChange = onRecipeValueChange,
+                            onOpenBottomSheet = { openBottomSheet = true },
+                            onPhotoViewButtonClick = { openPhotoView(it) },
+                            onSaveClick = onSaveClick
+                        )
+                    },
+                )
+            }
 
-        NewRecipeUiState.PhotoPicker -> TODO()
+            NewRecipeUiState.PhotoPicker -> TODO()
+        }
     }
+
     
 
 }
@@ -329,27 +324,25 @@ fun NewRecipeScreenContent(
 ) {
 
     // Remember scroll position after screen state changes
-//    val scrollState = rememberScrollState(scrollPosition)
-//    LaunchedEffect(scrollState) {
-//        snapshotFlow {
-//            scrollState.value
-//        }
-//            .collectLatest { index ->
-//                onScrollPositionChange(index)
-//            }
-//    }
+    val scrollState = rememberScrollState(scrollPosition)
 
         Column(
             modifier = modifier
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(scrollState)
         ) {
             OverviewCard(recipeUiState = recipeUiState, onValueChange = onRecipeValueChange)
             IngredientsCard(recipeUiState = recipeUiState)
             DirectionsCard(recipeUiState = recipeUiState)
             PhotosCard(
                 photosUriList = recipeUiState.photos,
-                onOpenBottomSheet = onOpenBottomSheet,
-                onPhotoViewButtonClick = {onPhotoViewButtonClick(it)}
+                onOpenBottomSheet = {
+                    onScrollPositionChange(scrollState.value)
+                    onOpenBottomSheet.invoke()
+                                    },
+                onPhotoViewButtonClick = {
+                    onScrollPositionChange(scrollState.value)
+                    onPhotoViewButtonClick(it)
+                }
             )
             PrimaryButton(
                 text = "Save",
@@ -588,20 +581,20 @@ private fun PhotosCard(
                                 onOpenBottomSheet.invoke()
                             },
                         shape = RoundedCornerShape(8.dp),
-                        border = BorderStroke(1.dp, colorScheme.onSecondaryContainer)
+                        border = BorderStroke(1.dp, colorScheme.onSecondaryContainer),
+                        color = colorScheme.background
                     ){
-                        Box(modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Icon(
-                                    Icons.Filled.Add,
-                                    contentDescription = null,
-                                    modifier = Modifier
-                                )
-                                Text(text = "Add Photo")
-                            }
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                Icons.Filled.Add,
+                                contentDescription = null,
+                                modifier = Modifier
+                            )
+                            Text(text = "Add Photo")
                         }
                     }
                 }

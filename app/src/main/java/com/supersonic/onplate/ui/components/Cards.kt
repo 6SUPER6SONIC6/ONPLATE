@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
@@ -57,7 +56,7 @@ fun RecipeCard(
             .clickable { onItemClick(recipe.id) },
         shape = CardDefaults.shape,
         elevation = CardDefaults.cardElevation(8.dp),
-        colors = CardDefaults.cardColors(colorScheme.secondaryContainer)
+//        colors = CardDefaults.cardColors(colorScheme.secondaryContainer)
     ) {
 
             if (recipe.photos.isNotEmpty()){
@@ -149,30 +148,31 @@ fun RecipeCard(
 fun ContentCard(
     modifier: Modifier = Modifier,
     cardTitle: String,
-    content: @Composable BoxScope.() -> Unit,
+    content: @Composable () -> Unit,
 ) {
     Box(modifier = modifier) {
-        Box(
+        Surface(
             modifier = Modifier
                 .fillMaxWidth()
                 .defaultMinSize(minHeight = 128.dp)
                 .padding(top = 16.dp)
-                .border(1.dp, colorScheme.onSecondaryContainer, RoundedCornerShape(8.dp))
-                .background(colorScheme.secondaryContainer, RoundedCornerShape(8.dp)),
+                .border(1.dp, colorScheme.secondary, RoundedCornerShape(8.dp)),
+//                .background(colorScheme.surfaceContainer, RoundedCornerShape(8.dp)),
+            shape = RoundedCornerShape(8.dp),
             content = content
         )
-        Surface(
+        Box(
             modifier = Modifier
-            .align(Alignment.TopCenter),
-            color =  colorScheme.onSecondaryContainer,
-            shape = RoundedCornerShape(4.dp)
+                .align(Alignment.TopCenter)
+                .background(colorScheme.secondary, RoundedCornerShape(6.dp)),
+//            color =  colorScheme.onSecondaryContainer,
         ) {
             Text(
                 text = cardTitle,
                 modifier = Modifier
-                    .padding(start = 4.dp, end = 4.dp),
+                    .padding(3.dp),
                 style = typography.titleLarge,
-                color = colorScheme.surface
+                color = colorScheme.onSecondary
             )
         }
     }
@@ -195,34 +195,36 @@ private fun ContentCardPreview() {
     ONPLATETheme {
 
             ContentCard(cardTitle = "Overview"){
-                Text(
-                    text = "45 min",
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(8.dp)
-                )
+                Box{
+                    Text(
+                        text = "45 min",
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(8.dp)
+                    )
 
-                Column(
-                    modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = "Pasta",
-                        style = typography.titleLarge,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Text(
-                        text = "Spaghetti and meatballs are a classic family-friendly dinner." +
-                                " This recipe is great for batch cooking so you can save extra portions in the freezer.",
-                        modifier = Modifier.padding(top = 2.dp),
-                        style = typography.bodyLarge,
-                        textAlign = TextAlign.Center,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                    Column(
+                        modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Pasta",
+                            style = typography.titleLarge,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Text(
+                            text = "Spaghetti and meatballs are a classic family-friendly dinner." +
+                                    " This recipe is great for batch cooking so you can save extra portions in the freezer.",
+                            modifier = Modifier.padding(top = 2.dp),
+                            style = typography.bodyLarge,
+                            textAlign = TextAlign.Center,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 }
             }
 

@@ -13,8 +13,6 @@ import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -81,7 +79,8 @@ fun RecipeDetailsScreen(
         content = {
             RecipeScreenContent(
                 modifier = Modifier.padding(it),
-                recipe = uiState.value.toRecipe())
+                recipe = uiState.value.toRecipe()
+            )
         }
     )
 
@@ -96,10 +95,10 @@ private fun RecipeTopBar(onBackClick: () -> Unit, navigateToEditRecipe: () -> Un
         title = stringResource(RecipeScreenDestination.titleRes),
         onBackClick = onBackClick,
         actions = {
-            IconButton(onClick = navigateToEditRecipe, colors = IconButtonDefaults.iconButtonColors(contentColor = colorScheme.onPrimary)) {
+            IconButton(onClick = navigateToEditRecipe) {
                 Icon(Icons.Outlined.Edit, contentDescription = null)
             }
-            IconButton(onClick = { openDeleteConfirmationDialog = true }, colors = IconButtonDefaults.iconButtonColors(contentColor = colorScheme.onPrimary)) {
+            IconButton(onClick = { openDeleteConfirmationDialog = true }) {
                 Icon(Icons.Outlined.Delete, contentDescription = null)
             }
         })

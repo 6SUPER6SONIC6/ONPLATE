@@ -93,10 +93,12 @@ fun RootAppNavigation(
             type = NavType.IntType }
         )
         ) {
-            val viewModel = hiltViewModel<EditRecipeViewModel>()
+            val editRecipeViewModel = hiltViewModel<EditRecipeViewModel>()
+            val newRecipeViewModel = hiltViewModel<NewRecipeViewModel>()
 
             EditRecipeScreen(
-                viewModel = viewModel,
+                editRecipeViewModel = editRecipeViewModel,
+                newRecipeViewModel = newRecipeViewModel,
                 onBackClick = { navController.navigateUp() }
             )
         }
